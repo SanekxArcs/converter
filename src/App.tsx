@@ -71,7 +71,7 @@ function App() {
   return (
     <>
       <SEO />
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2 md:p-6 flex flex-col">
+      <div className="min-h-[100svh] bg-gradient-to-br from-blue-50 to-indigo-200 p-2 md:p-6 flex flex-col">
         <div className="max-w-4xl flex flex-col mx-auto flex-1 w-full">
           <Header />
 
