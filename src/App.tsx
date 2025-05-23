@@ -71,11 +71,11 @@ function App() {
   return (
     <>
       <SEO />
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2 md:p-6">
-        <div className="max-w-4xl mx-auto">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2 md:p-6 flex flex-col">
+        <div className="max-w-4xl flex flex-col mx-auto flex-1 w-full">
           <Header />
 
-        <div className="bg-white rounded-xl shadow-lg p-2 md:p-8 mb-2 md:mb-6">
+        <div className="bg-white rounded-xl flex-1 shadow-lg p-2 md:p-8 mb-2 md:mb-6">
           <FileUploadZone
             dragActive={dragActive}
             onDragEnter={handleDrag}
@@ -125,8 +125,8 @@ function App() {
         </div>
 
         <Footer />
+        </div>
       </div>
-    </div>
     </>
   );
 }
