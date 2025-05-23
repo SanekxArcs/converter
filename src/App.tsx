@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import Header from './components/Header/Header';
+import SEO from './components/SEO/SEO';
 import FileUploadZone from './components/FileUpload/FileUploadZone';
 import FilePreviewGrid from './components/FilePreview/FilePreviewGrid';
 import QualityControl from './components/QualityControl/QualityControl';
@@ -68,12 +69,11 @@ function App() {
   }, [convertedImages, setError]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2 md:p-6">
-      <div className="max-w-4xl mx-auto">
-        <Header 
-          title="PNG, AVIF & JPEG to WebP Converter"
-          subtitle="Convert your PNG, AVIF, and JPEG images to WebP format with adjustable quality"
-        />
+    <>
+      <SEO />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2 md:p-6">
+        <div className="max-w-4xl mx-auto">
+          <Header />
 
         <div className="bg-white rounded-xl shadow-lg p-2 md:p-8 mb-2 md:mb-6">
           <FileUploadZone
@@ -127,6 +127,7 @@ function App() {
         <Footer />
       </div>
     </div>
+    </>
   );
 }
 
