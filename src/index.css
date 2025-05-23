@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+/* Custom slider styles with improved visibility */
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #e5e7eb;
+  height: 8px;
+  border-radius: 8px;
+  outline: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+.slider::-webkit-slider-track {
+  background: #e5e7eb;
+  height: 8px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #2563eb;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  background: #1d4ed8;
+  transform: scale(1.15);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.slider::-webkit-slider-thumb:active {
+  transform: scale(1.1);
+}
+
+/* Firefox */
+.slider::-moz-range-track {
+  background: #e5e7eb;
+  height: 8px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+}
+
+.slider::-moz-range-thumb {
+  background: #2563eb;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -moz-appearance: none;
+}
+
+.slider::-moz-range-thumb:hover {
+  background: #1d4ed8;
+  transform: scale(1.15);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.slider::-moz-range-thumb:active {
+  transform: scale(1.1);
+}
+
+/* Internet Explorer */
+.slider::-ms-track {
+  background: transparent;
+  border-color: transparent;
+  color: transparent;
+  height: 8px;
+  cursor: pointer;
+}
+
+.slider::-ms-fill-lower {
+  background: #2563eb;
+  border-radius: 8px;
+}
+
+.slider::-ms-fill-upper {
+  background: #e5e7eb;
+  border-radius: 8px;
+}
+
+.slider::-ms-thumb {
+  background: #2563eb;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+.slider::-ms-thumb:hover {
+  background: #1d4ed8;
+}
