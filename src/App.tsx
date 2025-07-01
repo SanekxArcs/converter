@@ -4,6 +4,7 @@ import SEO from './components/SEO/SEO';
 import FileUploadZone from './components/FileUpload/FileUploadZone';
 import FilePreviewGrid from './components/FilePreview/FilePreviewGrid';
 import QualityControl from './components/QualityControl/QualityControl';
+import ResizeControl, { type ResizeSettings } from './components/ResizeControl/ResizeControl';
 import ConversionResults from './components/ConversionResults/ConversionResults';
 import ErrorDisplay from './components/ErrorDisplay/ErrorDisplay';
 import Footer from './components/Footer/Footer';
@@ -16,6 +17,12 @@ import { SUPPORTED_EXTENSIONS } from './types';
 function App() {
   const [quality, setQuality] = useState<number>(80);
   const [isConverting, setIsConverting] = useState<boolean>(false);
+  const [resizeSettings, setResizeSettings] = useState<ResizeSettings>({
+    enabled: false,
+    width: 1920,
+    height: 1080,
+    aspectRatio: 'preserve'
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -47,14 +54,14 @@ function App() {
     setError('');
 
     try {
-      const converted = await convertMultipleImages(selectedFiles, quality);
+      const converted = await convertMultipleImages(selectedFiles, quality, resizeSettings);
       setConvertedImages(converted);
     } catch {
       setError('Error converting images. Please try again.');
     } finally {
       setIsConverting(false);
     }
-  }, [selectedFiles, quality, setConvertedImages, setError]);
+  }, [selectedFiles, quality, resizeSettings, setConvertedImages, setError]);
 
   const handleDownloadAll = useCallback(() => {
     downloadMultipleFiles(convertedImages);
@@ -107,13 +114,20 @@ function App() {
           />
 
           {selectedFiles.length > 0 && (
-            <QualityControl
-              quality={quality}
-              onQualityChange={setQuality}
-              onConvert={handleConversion}
-              isConverting={isConverting}
-              fileCount={selectedFiles.length}
-            />
+            <>
+              <QualityControl
+                quality={quality}
+                onQualityChange={setQuality}
+                onConvert={handleConversion}
+                isConverting={isConverting}
+                fileCount={selectedFiles.length}
+              />
+              
+              <ResizeControl
+                resizeSettings={resizeSettings}
+                onResizeSettingsChange={setResizeSettings}
+              />
+            </>
           )}
 
           <ConversionResults

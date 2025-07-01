@@ -1,9 +1,11 @@
 import type { SelectedFile, ConvertedImage } from '../types';
+import type { ResizeSettings } from '../components/ResizeControl/ResizeControl';
 import { SUPPORTED_MIME_TYPES } from '../types';
 
 export const convertImageToWebP = async (
   selectedFile: SelectedFile, 
-  quality: number
+  quality: number,
+  resizeSettings?: ResizeSettings
 ): Promise<ConvertedImage | null> => {
   try {
     const canvas = document.createElement('canvas');
@@ -12,9 +14,33 @@ export const convertImageToWebP = async (
 
     await new Promise<void>((resolve, reject) => {
       img.onload = () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx?.drawImage(img, 0, 0);
+        let targetWidth = img.width;
+        let targetHeight = img.height;
+
+        // Apply resizing if enabled
+        if (resizeSettings?.enabled && resizeSettings.width > 0 && resizeSettings.height > 0) {
+          if (resizeSettings.aspectRatio === 'preserve') {
+            // Calculate dimensions while preserving aspect ratio
+            const aspectRatio = img.width / img.height;
+            const targetAspectRatio = resizeSettings.width / resizeSettings.height;
+            
+            if (aspectRatio > targetAspectRatio) {
+              targetWidth = resizeSettings.width;
+              targetHeight = Math.round(resizeSettings.width / aspectRatio);
+            } else {
+              targetWidth = Math.round(resizeSettings.height * aspectRatio);
+              targetHeight = resizeSettings.height;
+            }
+          } else {
+            // Free or square aspect ratio
+            targetWidth = resizeSettings.width;
+            targetHeight = resizeSettings.height;
+          }
+        }
+
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        ctx?.drawImage(img, 0, 0, targetWidth, targetHeight);
         resolve();
       };
       img.onerror = reject;
@@ -49,12 +75,13 @@ export const convertImageToWebP = async (
 export const convertMultipleImages = async (
   selectedFiles: SelectedFile[],
   quality: number,
+  resizeSettings?: ResizeSettings,
   onProgress?: (current: number, total: number) => void
 ): Promise<ConvertedImage[]> => {
   const converted: ConvertedImage[] = [];
 
   for (let i = 0; i < selectedFiles.length; i++) {
-    const result = await convertImageToWebP(selectedFiles[i], quality);
+    const result = await convertImageToWebP(selectedFiles[i], quality, resizeSettings);
     if (result) {
       converted.push(result);
     }
