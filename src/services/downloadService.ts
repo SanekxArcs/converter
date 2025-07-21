@@ -2,11 +2,26 @@ import JSZip from 'jszip';
 import type { ConvertedImage } from '../types';
 import { replaceFileExtension } from '../utils/fileUtils';
 
+const generateFileName = (convertedImage: ConvertedImage): string => {
+  let fileName = replaceFileExtension(convertedImage.originalFile.name, '.webp');
+  
+  // If metadata has a title, use it as prefix
+  if (convertedImage.metadata?.title) {
+    const sanitizedTitle = convertedImage.metadata.title
+      .replace(/[^a-zA-Z0-9\-_\s]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .toLowerCase();
+    fileName = `${sanitizedTitle}_${fileName}`;
+  }
+  
+  return fileName;
+};
+
 export const downloadSingleFile = (convertedImage: ConvertedImage): void => {
   const url = URL.createObjectURL(convertedImage.webpBlob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = replaceFileExtension(convertedImage.originalFile.name, '.webp');
+  a.download = generateFileName(convertedImage);
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -25,7 +40,7 @@ export const downloadAsZip = async (convertedImages: ConvertedImage[]): Promise<
   const zip = new JSZip();
   
   convertedImages.forEach(convertedImage => {
-    const fileName = replaceFileExtension(convertedImage.originalFile.name, '.webp');
+    const fileName = generateFileName(convertedImage);
     zip.file(fileName, convertedImage.webpBlob);
   });
 

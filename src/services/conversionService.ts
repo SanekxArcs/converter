@@ -1,11 +1,12 @@
-import type { SelectedFile, ConvertedImage } from '../types';
+import type { SelectedFile, ConvertedImage, ImageMetadata } from '../types';
 import type { ResizeSettings } from '../components/ResizeControl/ResizeControl';
 import { SUPPORTED_MIME_TYPES } from '../types';
 
 export const convertImageToWebP = async (
   selectedFile: SelectedFile, 
   quality: number,
-  resizeSettings?: ResizeSettings
+  resizeSettings?: ResizeSettings,
+  metadata?: ImageMetadata
 ): Promise<ConvertedImage | null> => {
   try {
     const canvas = document.createElement('canvas');
@@ -64,7 +65,8 @@ export const convertImageToWebP = async (
       webpBlob: blob,
       webpSize,
       compressionRatio,
-      quality
+      quality,
+      metadata
     };
   } catch (error) {
     console.error('Error converting image:', error);
@@ -76,12 +78,13 @@ export const convertMultipleImages = async (
   selectedFiles: SelectedFile[],
   quality: number,
   resizeSettings?: ResizeSettings,
+  metadata?: ImageMetadata,
   onProgress?: (current: number, total: number) => void
 ): Promise<ConvertedImage[]> => {
   const converted: ConvertedImage[] = [];
 
   for (let i = 0; i < selectedFiles.length; i++) {
-    const result = await convertImageToWebP(selectedFiles[i], quality, resizeSettings);
+    const result = await convertImageToWebP(selectedFiles[i], quality, resizeSettings, metadata);
     if (result) {
       converted.push(result);
     }

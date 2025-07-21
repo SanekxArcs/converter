@@ -23,6 +23,28 @@ const ConversionResultItem: React.FC<ConversionResultItemProps> = ({
       <h4 className="font-medium text-gray-700 mb-2 text-xs md:text-base">
         {convertedImage.originalFile.name.replace(/\.(png|avif|jpe?g)$/i, '.webp')}
       </h4>
+
+      {/* Metadata Display */}
+      {convertedImage.metadata && Object.values(convertedImage.metadata).some(Boolean) && (
+        <div className="mb-2 p-2 bg-gray-50 rounded-md">
+          <p className="text-xs font-medium text-gray-600 mb-1">Metadata:</p>
+          {convertedImage.metadata.author && (
+            <p className="text-xs text-gray-600">
+              <span className="font-medium">Author:</span> {convertedImage.metadata.author}
+            </p>
+          )}
+          {convertedImage.metadata.title && (
+            <p className="text-xs text-gray-600">
+              <span className="font-medium">Title:</span> {convertedImage.metadata.title}
+            </p>
+          )}
+          {convertedImage.metadata.copyright && (
+            <p className="text-xs text-gray-600">
+              <span className="font-medium">Copyright:</span> {convertedImage.metadata.copyright}
+            </p>
+          )}
+        </div>
+      )}
       
       <div className="grid grid-cols-2 gap-2 mb-2">
         <div>

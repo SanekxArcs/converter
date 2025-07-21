@@ -1,3 +1,11 @@
+export interface ImageMetadata {
+  author?: string;
+  title?: string;
+  description?: string;
+  copyright?: string;
+  keywords?: string[];
+}
+
 export interface ConvertedImage {
   id: string;
   originalFile: File;
@@ -6,6 +14,7 @@ export interface ConvertedImage {
   webpSize: number;
   compressionRatio: number;
   quality: number;
+  metadata?: ImageMetadata;
 }
 
 export interface SelectedFile {
