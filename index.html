@@ -17,9 +17,24 @@
     <meta name="twitter:title" content="Free PNG, AVIF & JPEG to WebP Converter" />
     <meta name="twitter:description" content="Convert images to WebP format instantly. Free, secure, browser-based conversion." />
     <link rel="canonical" href="https://yourwebsite.com" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#3b82f6" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
   </body>
 </html>

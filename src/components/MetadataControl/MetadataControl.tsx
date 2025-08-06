@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import type { ImageMetadata } from '../../types';
-import { validateMetadata, cleanMetadata } from '../../utils/metadataUtils';
+import { 
+  validateMetadata, 
+  cleanMetadata, 
+  saveMetadataToLocalStorage, 
+  loadMetadataFromLocalStorage, 
+  clearMetadataFromLocalStorage, 
+  hasMetadataInLocalStorage 
+} from '../../utils/metadataUtils';
 
 interface MetadataControlProps {
   metadata: ImageMetadata;
@@ -52,6 +59,22 @@ const MetadataControl: React.FC<MetadataControlProps> = ({
       e.preventDefault();
       handleAddKeyword();
     }
+  };
+
+  const handleSaveMetadata = () => {
+    saveMetadataToLocalStorage(metadata);
+    // You could add a toast notification here
+  };
+
+  const handleLoadMetadata = () => {
+    const savedMetadata = loadMetadataFromLocalStorage();
+    onMetadataChange(savedMetadata);
+    setValidationErrors([]);
+  };
+
+  const handleClearSavedMetadata = () => {
+    clearMetadataFromLocalStorage();
+    // You could add a toast notification here
   };
 
   return (
@@ -193,6 +216,40 @@ const MetadataControl: React.FC<MetadataControlProps> = ({
                 Clear All
               </button>
             </div>
+          </div>
+
+          {/* Local Storage Controls */}
+          <div>
+            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+              Save & Load Metadata
+            </label>
+            <div className="flex flex-wrap gap-1 md:gap-2">
+              <button
+                onClick={handleSaveMetadata}
+                className="px-2 py-1 text-xs bg-green-200 text-green-700 hover:bg-green-300 rounded-md transition-colors"
+              >
+                💾 Save to Browser
+              </button>
+              <button
+                onClick={handleLoadMetadata}
+                disabled={!hasMetadataInLocalStorage()}
+                className="px-2 py-1 text-xs bg-blue-200 text-blue-700 hover:bg-blue-300 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed rounded-md transition-colors"
+              >
+                📂 Load Saved
+              </button>
+              <button
+                onClick={handleClearSavedMetadata}
+                disabled={!hasMetadataInLocalStorage()}
+                className="px-2 py-1 text-xs bg-orange-200 text-orange-700 hover:bg-orange-300 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed rounded-md transition-colors"
+              >
+                🗑️ Clear Saved
+              </button>
+            </div>
+            {hasMetadataInLocalStorage() && (
+              <p className="text-xs text-gray-500 mt-1">
+                ✓ Saved metadata available in browser storage
+              </p>
+            )}
           </div>
 
           {/* Validation Errors */}

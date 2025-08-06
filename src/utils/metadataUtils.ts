@@ -4,7 +4,7 @@ import type { ImageMetadata } from '../types';
  * Generate automatic metadata based on file information
  */
 export const generateAutoMetadata = (file: File): ImageMetadata => {
-  const fileName = file.name.replace(/\.(png|avif|jpe?g)$/i, '');
+  const fileName = file.name.replace(/\.(png|avif|jpe?g|gif)$/i, '');
   
   return {
     title: fileName.replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
@@ -65,4 +65,54 @@ export const cleanMetadata = (metadata: ImageMetadata): ImageMetadata => {
   if (metadata.keywords?.length) cleaned.keywords = metadata.keywords.filter(k => k.trim());
   
   return cleaned;
+};
+
+/**
+ * Save metadata to localStorage
+ */
+export const saveMetadataToLocalStorage = (metadata: ImageMetadata): void => {
+  try {
+    const cleanedMetadata = cleanMetadata(metadata);
+    localStorage.setItem('imageConverterMetadata', JSON.stringify(cleanedMetadata));
+  } catch (error) {
+    console.error('Error saving metadata to localStorage:', error);
+  }
+};
+
+/**
+ * Load metadata from localStorage
+ */
+export const loadMetadataFromLocalStorage = (): ImageMetadata => {
+  try {
+    const saved = localStorage.getItem('imageConverterMetadata');
+    if (saved) {
+      return JSON.parse(saved) as ImageMetadata;
+    }
+  } catch (error) {
+    console.error('Error loading metadata from localStorage:', error);
+  }
+  return {};
+};
+
+/**
+ * Clear metadata from localStorage
+ */
+export const clearMetadataFromLocalStorage = (): void => {
+  try {
+    localStorage.removeItem('imageConverterMetadata');
+  } catch (error) {
+    console.error('Error clearing metadata from localStorage:', error);
+  }
+};
+
+/**
+ * Check if metadata exists in localStorage
+ */
+export const hasMetadataInLocalStorage = (): boolean => {
+  try {
+    return localStorage.getItem('imageConverterMetadata') !== null;
+  } catch (error) {
+    console.error('Error checking metadata in localStorage:', error);
+    return false;
+  }
 };

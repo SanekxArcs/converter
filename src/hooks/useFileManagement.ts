@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import type { SelectedFile, ConvertedImage } from '../types';
 import { generateUniqueId } from '../utils/fileUtils';
 import { isValidImageFile } from '../services/conversionService';
+import { extractExifData } from '../services/exifService';
 
 export const useFileManagement = () => {
   const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
@@ -12,26 +13,33 @@ export const useFileManagement = () => {
     const supportedFiles = files.filter(isValidImageFile);
     
     if (supportedFiles.length === 0) {
-      setError('Please select PNG, AVIF, or JPEG files only.');
+      setError('Please select PNG, AVIF, JPEG, or GIF files only.');
       return [];
     }
 
     if (files.length > supportedFiles.length) {
-      setError(`${files.length - supportedFiles.length} unsupported files were ignored. Only PNG, AVIF, and JPEG files are supported.`);
+      setError(`${files.length - supportedFiles.length} unsupported files were ignored. Only PNG, AVIF, JPEG, and GIF files are supported.`);
     }
 
     return supportedFiles;
   }, []);
 
-  const addFiles = useCallback((files: File[]) => {
+  const addFiles = useCallback(async (files: File[]) => {
     const validFiles = validateAndProcessFiles(files);
     if (validFiles.length === 0) return;
 
-    const newFiles: SelectedFile[] = validFiles.map(file => ({
-      id: generateUniqueId(),
-      file,
-      preview: URL.createObjectURL(file)
-    }));
+    // Process files with EXIF data extraction
+    const newFiles: SelectedFile[] = await Promise.all(
+      validFiles.map(async (file) => {
+        const exifData = await extractExifData(file);
+        return {
+          id: generateUniqueId(),
+          file,
+          preview: URL.createObjectURL(file),
+          exifData: exifData || undefined
+        };
+      })
+    );
 
     setSelectedFiles(prev => [...prev, ...newFiles]);
     setConvertedImages([]);

@@ -5,23 +5,26 @@ import { formatFileSize } from '../../utils/fileUtils';
 interface ConversionResultItemProps {
   convertedImage: ConvertedImage;
   onDownload: (convertedImage: ConvertedImage) => void;
+  onCompare: (convertedImage: ConvertedImage) => void;
 }
 
 const ConversionResultItem: React.FC<ConversionResultItemProps> = ({
   convertedImage,
-  onDownload
+  onDownload,
+  onCompare
 }) => {
   const getOriginalFileType = (mimeType: string): string => {
     switch (mimeType) {
       case 'image/png': return 'PNG';
       case 'image/avif': return 'AVIF';
       case 'image/jpeg': return 'JPEG';
+      case 'image/gif': return 'GIF';
       default: return 'Image';
     }
   };
   return (    <div className="bg-white p-2 rounded-lg">
       <h4 className="font-medium text-gray-700 mb-2 text-xs md:text-base">
-        {convertedImage.originalFile.name.replace(/\.(png|avif|jpe?g)$/i, '.webp')}
+        {convertedImage.originalFile.name.replace(/\.(png|avif|jpe?g|gif)$/i, '.webp')}
       </h4>
 
       {/* Metadata Display */}
@@ -43,6 +46,18 @@ const ConversionResultItem: React.FC<ConversionResultItemProps> = ({
               <span className="font-medium">Copyright:</span> {convertedImage.metadata.copyright}
             </p>
           )}
+        </div>
+      )}
+      
+      {/* EXIF Data Display */}
+      {convertedImage.originalExif && (
+        <div className="mb-2 p-2 bg-blue-50 rounded-md">
+          <p className="text-xs font-medium text-blue-600 mb-1">
+            EXIF Data: {convertedImage.preservedExif ? 'Preserved' : 'Available'}
+          </p>
+          <p className="text-xs text-blue-600">
+            {Object.keys(convertedImage.originalExif).length} fields detected
+          </p>
         </div>
       )}
       
@@ -88,12 +103,20 @@ const ConversionResultItem: React.FC<ConversionResultItemProps> = ({
         </div>
       </div>
 
-      <button
-        onClick={() => onDownload(convertedImage)}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-1.5 px-3 rounded-md font-medium transition-colors text-xs md:text-sm"
-      >
-        Download WebP
-      </button>
+      <div className="space-y-2">
+        <button
+          onClick={() => onCompare(convertedImage)}
+          className="w-full bg-green-600 hover:bg-green-700 text-white py-1.5 px-3 rounded-md font-medium transition-colors text-xs md:text-sm"
+        >
+          Compare Images
+        </button>
+        <button
+          onClick={() => onDownload(convertedImage)}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-1.5 px-3 rounded-md font-medium transition-colors text-xs md:text-sm"
+        >
+          Download WebP
+        </button>
+      </div>
     </div>
   );
 };

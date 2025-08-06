@@ -1,0 +1,47 @@
+{
+  "name": "Image to WebP Converter",
+  "short_name": "WebP Converter",
+  "description": "Convert PNG, AVIF, JPEG, and GIF images to WebP format with advanced features",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["productivity", "utilities", "photo"],
+  "icons": [
+    {
+      "src": "vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "features": [
+    "Image conversion to WebP",
+    "Batch processing",
+    "Quality control",
+    "Image resizing",
+    "Metadata management",
+    "EXIF data handling",
+    "Image comparison",
+    "Offline functionality"
+  ],
+  "shortcuts": [
+    {
+      "name": "Convert Images",
+      "short_name": "Convert",
+      "description": "Start converting images to WebP",
+      "url": "/",
+      "icons": [
+        {
+          "src": "vite.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ]
+}

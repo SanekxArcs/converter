@@ -4,8 +4,8 @@ const SEO: React.FC = () => {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Free PNG, AVIF & JPEG to WebP Converter",
-    "description": "Convert PNG, AVIF, and JPEG images to WebP format for free. Reduce file sizes by up to 90% while maintaining quality.",
+    "name": "Free PNG, AVIF, JPEG & GIF to WebP Converter",
+    "description": "Convert PNG, AVIF, JPEG, and GIF images to WebP format for free. Reduce file sizes by up to 90% while maintaining quality.",
     "url": "https://yourwebsite.com",
     "applicationCategory": "MultimediaApplication",
     "operatingSystem": "Any",
@@ -18,6 +18,7 @@ const SEO: React.FC = () => {
       "Convert PNG to WebP",
       "Convert JPEG to WebP", 
       "Convert AVIF to WebP",
+      "Convert GIF to WebP",
       "Adjust image quality",
       "Browser-based conversion",
       "No file uploads required",

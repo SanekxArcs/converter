@@ -1,6 +1,6 @@
-# PNG, AVIF & JPEG to WebP Converter
+# PNG, AVIF, JPEG & GIF to WebP Converter
 
-A modern, fast, and user-friendly web application that converts PNG, AVIF, and JPEG images to WebP format with adjustable quality settings. Built with React, TypeScript, Vite, and Tailwind CSS for optimal performance and beautiful design.
+A modern, fast, and user-friendly web application that converts PNG, AVIF, JPEG, and GIF images to WebP format with adjustable quality settings. Built with React, TypeScript, Vite, and Tailwind CSS for optimal performance and beautiful design.
 
 ![PNG to WebP Converter](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
@@ -10,7 +10,7 @@ A modern, fast, and user-friendly web application that converts PNG, AVIF, and J
 ## ✨ Features
 
 ### 🎯 Core Functionality
-- **Multi-File Upload**: Drag and drop or select multiple PNG, AVIF, and JPEG files at once
+- **Multi-File Upload**: Drag and drop or select multiple PNG, AVIF, JPEG, and GIF files at once
 - **Real-Time Preview**: See thumbnails of your selected images before conversion
 - **Quality Control**: Adjustable quality slider (10-100%) for optimal file size vs quality balance
 - **Batch Processing**: Convert multiple images simultaneously with the same quality settings
@@ -74,8 +74,8 @@ npm run preview
 ## 📖 How to Use
 
 1. **Upload Images**
-   - Drag and drop PNG, AVIF, or JPEG files onto the upload area, or
-   - Click "Choose Files" to select PNG, AVIF, or JPEG files from your computer
+   - Drag and drop PNG, AVIF, JPEG, or GIF files onto the upload area, or
+   - Click "Choose Files" to select PNG, AVIF, JPEG, or GIF files from your computer
    - Multiple files can be selected at once
 
 2. **Adjust Quality**

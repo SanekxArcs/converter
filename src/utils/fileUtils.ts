@@ -15,5 +15,5 @@ export const getFileExtension = (filename: string): string => {
 };
 
 export const replaceFileExtension = (filename: string, newExtension: string): string => {
-  return filename.replace(/\.(png|avif|jpe?g)$/i, newExtension);
+  return filename.replace(/\.(png|avif|jpe?g|gif)$/i, newExtension);
 };

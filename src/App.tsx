@@ -6,15 +6,17 @@ import FilePreviewGrid from './components/FilePreview/FilePreviewGrid';
 import QualityControl from './components/QualityControl/QualityControl';
 import ResizeControl, { type ResizeSettings } from './components/ResizeControl/ResizeControl';
 import MetadataControl from './components/MetadataControl/MetadataControl';
+import ExifControl from './components/ExifControl/ExifControl';
 import ConversionResults from './components/ConversionResults/ConversionResults';
 import ErrorDisplay from './components/ErrorDisplay/ErrorDisplay';
 import Footer from './components/Footer/Footer';
+import PWAStatus from './components/PWAStatus/PWAStatus';
 import { useFileManagement } from './hooks/useFileManagement';
 import { useDragAndDrop } from './hooks/useDragAndDrop';
 import { convertMultipleImages } from './services/conversionService';
 import { downloadSingleFile, downloadMultipleFiles, downloadAsZip } from './services/downloadService';
 import { SUPPORTED_EXTENSIONS } from './types';
-import type { ImageMetadata } from './types';
+import type { ImageMetadata, ConversionSettings, ExifData } from './types';
 
 function App() {
   const [quality, setQuality] = useState<number>(80);
@@ -26,6 +28,10 @@ function App() {
     aspectRatio: 'preserve'
   });
   const [metadata, setMetadata] = useState<ImageMetadata>({});
+  const [conversionSettings, setConversionSettings] = useState<ConversionSettings>({
+    preserveExif: false,
+    stripExif: true
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -57,14 +63,14 @@ function App() {
     setError('');
 
     try {
-      const converted = await convertMultipleImages(selectedFiles, quality, resizeSettings, metadata);
+      const converted = await convertMultipleImages(selectedFiles, quality, resizeSettings, metadata, conversionSettings);
       setConvertedImages(converted);
     } catch {
       setError('Error converting images. Please try again.');
     } finally {
       setIsConverting(false);
     }
-  }, [selectedFiles, quality, resizeSettings, metadata, setConvertedImages, setError]);
+  }, [selectedFiles, quality, resizeSettings, metadata, conversionSettings, setConvertedImages, setError]);
 
   const handleDownloadAll = useCallback(() => {
     downloadMultipleFiles(convertedImages);
@@ -93,7 +99,7 @@ function App() {
             onDragOver={handleDrag}
             onDrop={handleDrop}
             onFileSelect={() => fileInputRef.current?.click()}
-            acceptedFormats="PNG, AVIF & JPEG"
+            acceptedFormats="PNG, AVIF, JPEG & GIF"
           />
 
           <input
@@ -135,6 +141,12 @@ function App() {
                 metadata={metadata}
                 onMetadataChange={setMetadata}
               />
+              
+              <ExifControl
+                conversionSettings={conversionSettings}
+                onSettingsChange={setConversionSettings}
+                selectedFilesExif={selectedFiles.map(file => file.exifData).filter(Boolean) as ExifData[]}
+              />
             </>
           )}
 
@@ -148,6 +160,8 @@ function App() {
 
         <Footer />
         </div>
+        
+        <PWAStatus />
       </div>
     </>
   );

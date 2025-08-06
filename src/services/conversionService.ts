@@ -1,12 +1,14 @@
-import type { SelectedFile, ConvertedImage, ImageMetadata } from '../types';
+import type { SelectedFile, ConvertedImage, ImageMetadata, ConversionSettings } from '../types';
 import type { ResizeSettings } from '../components/ResizeControl/ResizeControl';
 import { SUPPORTED_MIME_TYPES } from '../types';
+import { prepareExifForWebP } from './exifService';
 
 export const convertImageToWebP = async (
   selectedFile: SelectedFile, 
   quality: number,
   resizeSettings?: ResizeSettings,
-  metadata?: ImageMetadata
+  metadata?: ImageMetadata,
+  conversionSettings?: ConversionSettings
 ): Promise<ConvertedImage | null> => {
   try {
     const canvas = document.createElement('canvas');
@@ -58,6 +60,18 @@ export const convertImageToWebP = async (
     const webpSize = blob.size;
     const compressionRatio = ((originalSize - webpSize) / originalSize * 100);
 
+    // Handle EXIF data if settings are provided
+    let originalExif = selectedFile.exifData;
+    let preservedExif = false;
+    
+    if (conversionSettings?.preserveExif && originalExif) {
+      // Prepare EXIF data for WebP (limited support)
+      const webpExif = prepareExifForWebP(originalExif);
+      preservedExif = Object.keys(webpExif).length > 0;
+      // Note: Actual EXIF embedding in WebP would require additional libraries
+      // For now, we'll store the EXIF data in our result object
+    }
+
     return {
       id: selectedFile.id,
       originalFile: selectedFile.file,
@@ -66,7 +80,9 @@ export const convertImageToWebP = async (
       webpSize,
       compressionRatio,
       quality,
-      metadata
+      metadata,
+      originalExif,
+      preservedExif
     };
   } catch (error) {
     console.error('Error converting image:', error);
@@ -79,12 +95,13 @@ export const convertMultipleImages = async (
   quality: number,
   resizeSettings?: ResizeSettings,
   metadata?: ImageMetadata,
+  conversionSettings?: ConversionSettings,
   onProgress?: (current: number, total: number) => void
 ): Promise<ConvertedImage[]> => {
   const converted: ConvertedImage[] = [];
 
   for (let i = 0; i < selectedFiles.length; i++) {
-    const result = await convertImageToWebP(selectedFiles[i], quality, resizeSettings, metadata);
+    const result = await convertImageToWebP(selectedFiles[i], quality, resizeSettings, metadata, conversionSettings);
     if (result) {
       converted.push(result);
     }

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { ConvertedImage } from '../../types';
 import ConversionResultItem from './ConversionResultItem';
+import ImageComparison from '../ImageComparison/ImageComparison';
 
 interface ConversionResultsProps {
   convertedImages: ConvertedImage[];
@@ -15,6 +16,16 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
   onDownloadAll,
   onDownloadZip
 }) => {
+  const [comparisonImage, setComparisonImage] = useState<ConvertedImage | null>(null);
+
+  const handleCompareImage = (convertedImage: ConvertedImage) => {
+    setComparisonImage(convertedImage);
+  };
+
+  const handleCloseComparison = () => {
+    setComparisonImage(null);
+  };
+
   if (convertedImages.length === 0) return null;
   return (    <div className="mt-2 md:mt-6 p-2 bg-green-50 rounded-lg">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-2 gap-2">
@@ -43,9 +54,17 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
             key={convertedImage.id}
             convertedImage={convertedImage}
             onDownload={onDownloadSingle}
+            onCompare={handleCompareImage}
           />
         ))}
       </div>
+      
+      {comparisonImage && (
+        <ImageComparison
+          convertedImage={comparisonImage}
+          onClose={handleCloseComparison}
+        />
+      )}
     </div>
   );
 };
