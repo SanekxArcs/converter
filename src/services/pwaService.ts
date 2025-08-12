@@ -38,28 +38,52 @@ class PWAService {
   }
 
   private async registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
+    // Ensure environment supports service workers
+    if (!('serviceWorker' in navigator)) {
+      return;
+    }
+
+    // In development, disable service worker and clear any existing registrations/caches
+    if (import.meta.env.DEV) {
       try {
-        const registration = await navigator.serviceWorker.register('/sw.js');
-        console.log('Service Worker registered successfully:', registration);
-        
-        // Listen for updates
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New content is available
-                this.showUpdateNotification();
-              }
-            });
-          }
-        });
-        
-        return registration;
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(r => r.unregister()));
+
+        // Clear caches to avoid serving stale assets
+        // Use global caches if available
+        if (typeof caches !== 'undefined') {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(k => caches.delete(k)));
+        }
+
+        console.log('Service Worker disabled in development: unregistered and caches cleared');
       } catch (error) {
-        console.error('Service Worker registration failed:', error);
+        console.warn('Service Worker cleanup in development failed:', error);
       }
+      return;
+    }
+
+    // Production: register service worker
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      console.log('Service Worker registered successfully:', registration);
+      
+      // Listen for updates
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New content is available
+              this.showUpdateNotification();
+            }
+          });
+        }
+      });
+      
+      return registration;
+    } catch (error) {
+      console.error('Service Worker registration failed:', error);
     }
   }
 

@@ -1,9 +1,9 @@
-import { useState, useCallback } from 'react';
+import React from 'react';
 
 export const useDragAndDrop = (onFilesDropped: (files: File[]) => void) => {
-  const [dragActive, setDragActive] = useState<boolean>(false);
+  const [dragActive, setDragActive] = React.useState<boolean>(false);
 
-  const handleDrag = useCallback((e: React.DragEvent) => {
+  const handleDrag = React.useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (e.type === "dragenter" || e.type === "dragover") {
@@ -13,7 +13,7 @@ export const useDragAndDrop = (onFilesDropped: (files: File[]) => void) => {
     }
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = React.useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);

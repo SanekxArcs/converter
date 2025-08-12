@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import Header from './components/Header/Header';
+// import Header from './components/Header/Header';
 import SEO from './components/SEO/SEO';
 import FileUploadZone from './components/FileUpload/FileUploadZone';
 import FilePreviewGrid from './components/FilePreview/FilePreviewGrid';
@@ -84,12 +84,16 @@ function App() {
     }
   }, [convertedImages, setError]);
 
+  // Determine whether there is any EXIF data across selected files
+  const selectedFilesExif = selectedFiles.map(file => file.exifData).filter(Boolean) as ExifData[];
+  const hasExifData = selectedFilesExif.some(exif => exif && Object.keys(exif).length > 0);
+
   return (
     <>
       <SEO />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-200 p-2 md:p-6 flex flex-col">
         <div className="max-w-4xl flex flex-col mx-auto flex-1 w-full">
-          <Header />
+          {/* <Header /> */}
 
         <div className="bg-white rounded-xl flex-1 shadow-lg p-2 md:p-8 mb-2 md:mb-6">
           <FileUploadZone
@@ -142,11 +146,13 @@ function App() {
                 onMetadataChange={setMetadata}
               />
               
-              <ExifControl
-                conversionSettings={conversionSettings}
-                onSettingsChange={setConversionSettings}
-                selectedFilesExif={selectedFiles.map(file => file.exifData).filter(Boolean) as ExifData[]}
-              />
+              {hasExifData && (
+                <ExifControl
+                  conversionSettings={conversionSettings}
+                  onSettingsChange={setConversionSettings}
+                  selectedFilesExif={selectedFilesExif}
+                />
+              )}
             </>
           )}
 

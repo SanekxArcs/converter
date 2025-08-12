@@ -19,22 +19,28 @@
     <link rel="canonical" href="https://yourwebsite.com" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#3b82f6" />
+
+    <!-- Development-only: unregister any existing service workers and clear caches to avoid stale assets -->
+    <script type="module">
+      if (import.meta.env.DEV && 'serviceWorker' in navigator) {
+        (async () => {
+          try {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map(r => r.unregister()));
+            if ('caches' in window) {
+              const keys = await caches.keys();
+              await Promise.all(keys.map(k => caches.delete(k)));
+            }
+            console.log('[DEV] Cleared service workers and caches');
+          } catch (e) {
+            console.warn('[DEV] Failed to cleanup SW/caches', e);
+          }
+        })();
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-              console.log('SW registered: ', registration);
-            })
-            .catch((registrationError) => {
-              console.log('SW registration failed: ', registrationError);
-            });
-        });
-      }
-    </script>
   </body>
 </html>

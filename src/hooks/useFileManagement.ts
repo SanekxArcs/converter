@@ -1,15 +1,15 @@
-import { useState, useCallback } from 'react';
+import React from 'react';
 import type { SelectedFile, ConvertedImage } from '../types';
 import { generateUniqueId } from '../utils/fileUtils';
 import { isValidImageFile } from '../services/conversionService';
 import { extractExifData } from '../services/exifService';
 
 export const useFileManagement = () => {
-  const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
-  const [convertedImages, setConvertedImages] = useState<ConvertedImage[]>([]);
-  const [error, setError] = useState<string>('');
+  const [selectedFiles, setSelectedFiles] = React.useState<SelectedFile[]>([]);
+  const [convertedImages, setConvertedImages] = React.useState<ConvertedImage[]>([]);
+  const [error, setError] = React.useState<string>('');
 
-  const validateAndProcessFiles = useCallback((files: File[]) => {
+  const validateAndProcessFiles = React.useCallback((files: File[]) => {
     const supportedFiles = files.filter(isValidImageFile);
     
     if (supportedFiles.length === 0) {
@@ -24,20 +24,31 @@ export const useFileManagement = () => {
     return supportedFiles;
   }, []);
 
-  const addFiles = useCallback(async (files: File[]) => {
+  const addFiles = React.useCallback(async (files: File[]) => {
     const validFiles = validateAndProcessFiles(files);
+    
     if (validFiles.length === 0) return;
 
     // Process files with EXIF data extraction
     const newFiles: SelectedFile[] = await Promise.all(
       validFiles.map(async (file) => {
-        const exifData = await extractExifData(file);
-        return {
-          id: generateUniqueId(),
-          file,
-          preview: URL.createObjectURL(file),
-          exifData: exifData || undefined
-        };
+        try {
+          const exifData = await extractExifData(file);
+          return {
+            id: generateUniqueId(),
+            file,
+            preview: URL.createObjectURL(file),
+            exifData: exifData || undefined
+          };
+        } catch (error) {
+          console.error(`EXIF extraction failed for ${file.name}:`, error);
+          return {
+            id: generateUniqueId(),
+            file,
+            preview: URL.createObjectURL(file),
+            exifData: undefined
+          };
+        }
       })
     );
 
@@ -45,7 +56,7 @@ export const useFileManagement = () => {
     setConvertedImages([]);
   }, [validateAndProcessFiles]);
 
-  const removeFile = useCallback((id: string) => {
+  const removeFile = React.useCallback((id: string) => {
     setSelectedFiles(prev => {
       const fileToRemove = prev.find(file => file.id === id);
       if (fileToRemove) {
@@ -56,13 +67,13 @@ export const useFileManagement = () => {
     setConvertedImages(prev => prev.filter(img => img.id !== id));
   }, []);
 
-  const clearAllFiles = useCallback(() => {
+  const clearAllFiles = React.useCallback(() => {
     selectedFiles.forEach(file => URL.revokeObjectURL(file.preview));
     setSelectedFiles([]);
     setConvertedImages([]);
   }, [selectedFiles]);
 
-  const clearError = useCallback(() => {
+  const clearError = React.useCallback(() => {
     setError('');
   }, []);
 
