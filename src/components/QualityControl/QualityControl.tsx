@@ -30,43 +30,48 @@ const QualityControl: React.FC<QualityControlProps> = ({
           <div className="flex flex-wrap justify-between gap-1 md:gap-2 mb-2 md:mb-3">
             <button
               onClick={() => onQualityChange(10)}
-              className={`px-2 py-1 flex-1 text-xs rounded-md transition-colors ${
+              className={`px-2 py-2 md:py-1 flex-1 text-xs rounded-md transition-colors touch-manipulation ${
                 quality === 10
                   ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300 active:bg-gray-400"
               }`}
+              style={{ minHeight: '40px' }}
             >
               Min
             </button>
             <button
               onClick={() => onQualityChange(Math.max(10, quality - 5))}
-              className="px-2 py-1 flex-1 text-xs bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-md transition-colors"
+              className="px-2 py-2 md:py-1 flex-1 text-xs bg-gray-200 text-gray-700 hover:bg-gray-300 active:bg-gray-400 rounded-md transition-colors touch-manipulation"
+              style={{ minHeight: '40px' }}
             >
               -5%
             </button>
             <button
               onClick={() => onQualityChange(80)}
-              className={`px-2 py-1 text-xs rounded-md transition-colors ${
+              className={`px-2 py-2 md:py-1 text-xs rounded-md transition-colors touch-manipulation ${
                 quality === 80
                   ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300 active:bg-gray-400"
               }`}
+              style={{ minHeight: '40px' }}
             >
               Default
             </button>
             <button
               onClick={() => onQualityChange(Math.min(100, quality + 5))}
-              className="px-2 flex-1 py-1 text-xs bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-md transition-colors"
+              className="px-2 flex-1 py-2 md:py-1 text-xs bg-gray-200 text-gray-700 hover:bg-gray-300 active:bg-gray-400 rounded-md transition-colors touch-manipulation"
+              style={{ minHeight: '40px' }}
             >
               +5%
             </button>
             <button
               onClick={() => onQualityChange(100)}
-              className={`px-2 py-1 flex-1 text-xs rounded-md transition-colors ${
+              className={`px-2 py-2 md:py-1 flex-1 text-xs rounded-md transition-colors touch-manipulation ${
                 quality === 100
                   ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300 active:bg-gray-400"
               }`}
+              style={{ minHeight: '40px' }}
             >
               Max
             </button>
@@ -100,7 +105,8 @@ const QualityControl: React.FC<QualityControlProps> = ({
         <button
           onClick={onConvert}
           disabled={isConverting || fileCount === 0}
-          className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-2 px-3 md:px-6 rounded-lg font-medium transition-colors text-xs md:text-base"
+          className="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:bg-gray-400 text-white py-3 md:py-2 px-3 md:px-6 rounded-lg font-medium transition-colors text-sm md:text-base touch-manipulation"
+          style={{ minHeight: '50px' }}
         >
           {isConverting
             ? "Converting..."

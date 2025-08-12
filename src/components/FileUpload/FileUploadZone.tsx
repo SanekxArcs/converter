@@ -45,11 +45,12 @@ const FileUploadZone: React.FC<FileUploadZoneProps> = ({
               </p>
               <button
                 onClick={onFileSelect}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold transition-colors text-lg w-full max-w-xs mx-auto block shadow-lg"
+                className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-8 py-5 rounded-lg font-semibold transition-colors text-lg w-full max-w-xs mx-auto block shadow-lg touch-manipulation"
+                style={{ minHeight: '60px' }}
               >
-                Choose Files
+                📱 Choose Files
               </button>
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-gray-500 mt-3">
                 Tap to browse and select multiple files
               </p>
             </>

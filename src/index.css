@@ -1,15 +1,36 @@
 @import "tailwindcss";
 
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  /* Prevent zoom on input focus */
+  input[type="range"],
+  input[type="file"],
+  button {
+    font-size: 16px;
+  }
+  
+  /* Improve touch targets */
+  button {
+    min-height: 44px;
+  }
+  
+  /* Better mobile scrolling */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 /* Custom slider styles with improved visibility */
 .slider {
   -webkit-appearance: none;
   appearance: none;
   background: #e5e7eb;
-  height: 8px;
+  height: 12px;
   border-radius: 8px;
   outline: none;
   cursor: pointer;
   width: 100%;
+  touch-action: manipulation;
 }
 
 /* Webkit browsers (Chrome, Safari, Edge) */
@@ -25,8 +46,8 @@
   -webkit-appearance: none;
   appearance: none;
   background: #2563eb;
-  height: 20px;
-  width: 20px;
+  height: 24px;
+  width: 24px;
   border-radius: 50%;
   border: 2px solid #ffffff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
@@ -57,8 +78,8 @@
 
 .slider::-moz-range-thumb {
   background: #2563eb;
-  height: 20px;
-  width: 20px;
+  height: 24px;
+  width: 24px;
   border-radius: 50%;
   border: 2px solid #ffffff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
