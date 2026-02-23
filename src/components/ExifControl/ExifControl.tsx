@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { ConversionSettings, ExifData } from '../../types';
-import { getReadableExifInfo, hasSensitiveExifData } from '../../services/exifService';
+import { getReadableExifInfo } from "../../services/exifService";
 
 interface ExifControlProps {
   conversionSettings: ConversionSettings;
@@ -8,175 +8,135 @@ interface ExifControlProps {
   selectedFilesExif?: ExifData[];
 }
 
+const EMPTY_EXIF_ARRAY: ExifData[] = [];
+
 const ExifControl: React.FC<ExifControlProps> = ({
-  conversionSettings,
-  onSettingsChange,
-  selectedFilesExif = []
+	conversionSettings,
+	onSettingsChange,
+	selectedFilesExif = EMPTY_EXIF_ARRAY,
 }) => {
-  const [showExifData, setShowExifData] = useState(false);
-  const [selectedFileIndex, setSelectedFileIndex] = useState(0);
+	const [showExifData, setShowExifData] = useState(false);
+	const [selectedFileIndex, setSelectedFileIndex] = useState(0);
 
-  const hasExifData = selectedFilesExif.length > 0 && selectedFilesExif.some(exif => exif && Object.keys(exif).length > 0);
-  const currentExif = selectedFilesExif[selectedFileIndex];
-  const hasSensitiveData = currentExif ? hasSensitiveExifData(currentExif) : false;
+	const hasExifData =
+		selectedFilesExif.length > 0 &&
+		selectedFilesExif.some((exif) => exif && Object.keys(exif).length > 0);
+	const currentExif = selectedFilesExif[selectedFileIndex];
 
-  const handlePreserveExifChange = (preserve: boolean) => {
-    onSettingsChange({
-      ...conversionSettings,
-      preserveExif: preserve,
-      stripExif: !preserve
-    });
-  };
+	const handlePreserveExifChange = (preserve: boolean) => {
+		onSettingsChange({
+			...conversionSettings,
+			preserveExif: preserve,
+			stripExif: !preserve,
+			sanitizeExif: false,
+		});
+	};
 
-  const handleStripExifChange = (strip: boolean) => {
-    onSettingsChange({
-      ...conversionSettings,
-      stripExif: strip,
-      preserveExif: !strip
-    });
-  };
+	const handleStripExifChange = (strip: boolean) => {
+		onSettingsChange({
+			...conversionSettings,
+			stripExif: strip,
+			preserveExif: !strip,
+			sanitizeExif: false,
+		});
+	};
 
-  return (
-    <div className="bg-gray-50 rounded-lg p-6 mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-800">EXIF Data Settings</h3>
-        {hasExifData && (
-          <button
-            onClick={() => setShowExifData(!showExifData)}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-          >
-            {showExifData ? 'Hide' : 'Show'} EXIF Data
-          </button>
-        )}
-      </div>
+	const handleSanitizeExifChange = (sanitize: boolean) => {
+		onSettingsChange({
+			...conversionSettings,
+			sanitizeExif: sanitize,
+			preserveExif: !sanitize,
+			stripExif: !sanitize,
+		});
+	};
 
-      {!hasExifData ? (
-        <div className="text-gray-600 text-sm bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <div className="flex items-center">
-            <svg className="w-5 h-5 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-            No EXIF data found in selected images. EXIF settings will not affect the conversion.
-          </div>
-        </div>
-      ) : (
-        <>
-          <div className="space-y-4">
-            {/* EXIF Preservation Options */}
-            <div className="space-y-3">
-              <div className="flex items-center">
-                <input
-                  type="radio"
-                  id="preserve-exif"
-                  name="exif-option"
-                  checked={conversionSettings.preserveExif}
-                  onChange={(e) => handlePreserveExifChange(e.target.checked)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                />
-                <label htmlFor="preserve-exif" className="ml-3 text-sm font-medium text-gray-700">
-                  Preserve EXIF data
-                </label>
-              </div>
-              <p className="ml-7 text-xs text-gray-500">
-                Keep camera settings, date taken, and other metadata in the converted image.
-                {hasSensitiveData && (
-                  <span className="text-orange-600 font-medium">
-                    {' '}⚠️ Warning: This includes GPS location data.
-                  </span>
-                )}
-              </p>
+	return (
+		<div className="space-y-4">
+			<div className="flex items-center justify-between">
+				<h3 className="text-xl font-display font-medium">EXIF</h3>
+				{hasExifData && (
+					<button
+						onClick={() => setShowExifData(!showExifData)}
+						className={`text-[10px] uppercase tracking-widest transition-colors ${showExifData ? "text-black" : "text-gray-300"}`}
+					>
+						{showExifData ? "Close" : "Data"}
+					</button>
+				)}
+			</div>
 
-              <div className="flex items-center">
-                <input
-                  type="radio"
-                  id="strip-exif"
-                  name="exif-option"
-                  checked={conversionSettings.stripExif}
-                  onChange={(e) => handleStripExifChange(e.target.checked)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                />
-                <label htmlFor="strip-exif" className="ml-3 text-sm font-medium text-gray-700">
-                  Remove EXIF data
-                </label>
-              </div>
-              <p className="ml-7 text-xs text-gray-500">
-                Strip all metadata for privacy and smaller file size. Recommended for web publishing.
-              </p>
-            </div>
+			<div className="flex flex-wrap gap-2">
+				<button
+					onClick={() => handlePreserveExifChange(true)}
+					className={`flex-1 px-3 py-2 text-[10px] uppercase tracking-widest rounded-xl transition-all ${
+						conversionSettings.preserveExif
+							? "bg-black text-white"
+							: "bg-gray-50 text-gray-400 hover:text-black"
+					}`}
+				>
+					Keep
+				</button>
+				<button
+					onClick={() => handleStripExifChange(true)}
+					className={`flex-1 px-3 py-2 text-[10px] uppercase tracking-widest rounded-xl transition-all ${
+						conversionSettings.stripExif
+							? "bg-black text-white"
+							: "bg-gray-50 text-gray-400 hover:text-black"
+					}`}
+				>
+					Remove
+				</button>
+				<button
+					onClick={() => handleSanitizeExifChange(true)}
+					className={`flex-1 px-3 py-2 text-[10px] uppercase tracking-widest rounded-xl transition-all ${
+						conversionSettings.sanitizeExif
+							? "bg-black text-white"
+							: "bg-gray-50 text-gray-400 hover:text-black"
+					}`}
+				>
+					Sanitize
+				</button>
+			</div>
 
-            {/* Sensitive Data Warning */}
-            {hasSensitiveData && conversionSettings.preserveExif && (
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                <div className="flex items-start">
-                  <svg className="w-5 h-5 text-orange-600 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  <div>
-                    <h4 className="text-sm font-medium text-orange-800">Privacy Warning</h4>
-                    <p className="text-sm text-orange-700 mt-1">
-                      Your images contain GPS location data. Consider removing EXIF data before sharing online to protect your privacy.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+			{showExifData && currentExif && (
+				<div className="mt-4 p-4 bg-gray-50 rounded-2xl space-y-3 animate-in fade-in slide-in-from-top-2 duration-500">
+					<div className="flex items-center justify-between pb-2 border-b border-gray-100">
+						<span className="text-[10px] text-gray-400 uppercase tracking-tighter">
+							Details
+						</span>
+						{selectedFilesExif.length > 1 && (
+							<select
+								value={selectedFileIndex}
+								onChange={(e) => setSelectedFileIndex(Number(e.target.value))}
+								className="bg-transparent border-none text-[10px] font-medium focus:ring-0 p-0"
+							>
+								{selectedFilesExif.map((_, i) => (
+									<option key={i} value={i}>
+										File {i + 1}
+									</option>
+								))}
+							</select>
+						)}
+					</div>
 
-          {/* EXIF Data Display */}
-          {showExifData && currentExif && (
-            <div className="mt-6 border-t pt-4">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-medium text-gray-700">EXIF Data Preview</h4>
-                {selectedFilesExif.length > 1 && (
-                  <select
-                    value={selectedFileIndex}
-                    onChange={(e) => setSelectedFileIndex(parseInt(e.target.value))}
-                    className="text-sm border border-gray-300 rounded px-2 py-1"
-                  >
-                    {selectedFilesExif.map((_, index) => (
-                      <option key={index} value={index}>
-                        File {index + 1}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-              
-              <div className="bg-white border border-gray-200 rounded-lg p-4 max-h-64 overflow-y-auto">
-                {(() => {
-                  const readableExif = getReadableExifInfo(currentExif);
-                  const entries = Object.entries(readableExif);
-                  
-                  if (entries.length === 0) {
-                    return (
-                      <p className="text-gray-500 text-sm">No readable EXIF data available for this image.</p>
-                    );
-                  }
-                  
-                  return (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {entries.map(([key, value]) => (
-                        <div key={key} className="flex justify-between items-center py-1">
-                          <span className="text-sm font-medium text-gray-600">{key}:</span>
-                          <span className="text-sm text-gray-800 ml-2 truncate">{value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })()}
-              </div>
-              
-              {hasSensitiveData && (
-                <div className="mt-3 text-xs text-orange-600">
-                  ⚠️ This image contains GPS location data
-                </div>
-              )}
-            </div>
-          )}
-        </>
-      )}
-    </div>
-  );
+					<div className="grid grid-cols-2 gap-y-2 gap-x-4">
+						{currentExif &&
+							Object.entries(getReadableExifInfo(currentExif)).map(
+								([label, value], idx) => (
+									<div key={idx} className="space-y-0.5">
+										<p className="text-[9px] text-gray-400 uppercase tracking-tighter">
+											{label}
+										</p>
+										<p className="text-[11px] font-medium text-black truncate">
+											{value}
+										</p>
+									</div>
+								),
+							)}
+					</div>
+				</div>
+			)}
+		</div>
+	);
 };
 
 export default ExifControl;

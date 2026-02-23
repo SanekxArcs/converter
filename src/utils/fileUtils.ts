@@ -11,7 +11,7 @@ export const generateUniqueId = (): string => {
 };
 
 export const getFileExtension = (filename: string): string => {
-  return filename.substring(filename.lastIndexOf('.'));
+  return filename.substring(filename.lastIndexOf("."));
 };
 
 export const replaceFileExtension = (filename: string, newExtension: string): string => {

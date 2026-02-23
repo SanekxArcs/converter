@@ -1,102 +1,75 @@
 @import "tailwindcss";
 
-/* Mobile optimizations */
-@media (max-width: 768px) {
-  /* Prevent zoom on input focus */
-  input[type="range"],
-  input[type="file"],
-  button {
-    font-size: 16px;
-  }
+@theme {
+  --font-display: "Clash Display", system-ui, sans-serif;
+  --font-body: "Satoshi", system-ui, sans-serif;
   
-  /* Improve touch targets */
-  button {
-    min-height: 44px;
-  }
-  
-  /* Better mobile scrolling */
-  * {
-    -webkit-overflow-scrolling: touch;
+  --color-brand-primary: #000000;
+  --color-brand-secondary: #ffffff;
+  --color-brand-accent: #3b82f6;
+  --color-brand-muted: #f3f4f6;
+}
+
+@font-face {
+  font-family: 'Clash Display';
+  src: url('https://api.fontshare.com/v2/fonts/download/clash-display') format('woff2');
+  font-weight: 200 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Satoshi';
+  src: url('https://api.fontshare.com/v2/fonts/download/satoshi') format('woff2');
+  font-weight: 300 900;
+  font-display: swap;
+}
+
+:root {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+}
+
+/* Base styles and mobile overrides */
+@layer base {
+  body {
+    @apply bg-white text-black;
   }
 }
 
-/* Custom slider styles with improved visibility */
+/* Custom minimal slider */
 .slider {
   -webkit-appearance: none;
   appearance: none;
-  background: #e5e7eb;
-  height: 12px;
-  border-radius: 8px;
-  outline: none;
-  cursor: pointer;
-  width: 100%;
-  touch-action: manipulation;
-}
-
-/* Webkit browsers (Chrome, Safari, Edge) */
-.slider::-webkit-slider-track {
-  background: #e5e7eb;
-  height: 8px;
-  border-radius: 8px;
-  border: none;
-  outline: none;
+  background: #eee;
+  height: 2px;
+  @apply rounded-full outline-none cursor-pointer w-full;
 }
 
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  background: #2563eb;
-  height: 24px;
-  width: 24px;
-  border-radius: 50%;
-  border: 2px solid #ffffff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  z-index: 1;
+  @apply w-4 h-4 bg-black rounded-full border-2 border-white shadow-sm transition-transform duration-200;
 }
 
 .slider::-webkit-slider-thumb:hover {
-  background: #1d4ed8;
-  transform: scale(1.15);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  @apply scale-125;
 }
 
-.slider::-webkit-slider-thumb:active {
-  transform: scale(1.1);
+/* Slim fit containers */
+.slim-container {
+  @apply max-w-[480px] mx-auto px-4;
 }
 
-/* Firefox */
-.slider::-moz-range-track {
-  background: #e5e7eb;
-  height: 8px;
-  border-radius: 8px;
-  border: none;
-  outline: none;
+/* Glass effect for modern touch */
+.glass {
+  @apply bg-white/70 backdrop-blur-md border border-gray-100;
 }
 
-.slider::-moz-range-thumb {
-  background: #2563eb;
-  height: 24px;
-  width: 24px;
-  border-radius: 50%;
-  border: 2px solid #ffffff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  -moz-appearance: none;
-}
-
-.slider::-moz-range-thumb:hover {
-  background: #1d4ed8;
-  transform: scale(1.15);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.slider::-moz-range-thumb:active {
-  transform: scale(1.1);
-}
 
 /* Internet Explorer */
 .slider::-ms-track {

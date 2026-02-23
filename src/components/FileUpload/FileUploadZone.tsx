@@ -11,68 +11,62 @@ interface FileUploadZoneProps {
 }
 
 const FileUploadZone: React.FC<FileUploadZoneProps> = ({
-  dragActive,
-  onDragEnter,
-  onDragLeave,
-  onDragOver,
-  onDrop,
-  onFileSelect,
-  acceptedFormats
+	dragActive,
+	onDragEnter,
+	onDragLeave,
+	onDragOver,
+	onDrop,
+	onFileSelect,
 }) => {
-  // Check if device likely supports drag and drop (desktop)
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  
-  return (
-    <div
-      className={`border-2 border-dashed rounded-lg p-3 md:p-8 text-center transition-colors ${
-        dragActive
-          ? 'border-blue-500 bg-blue-50'
-          : 'border-gray-300 hover:border-gray-400'
-      }`}
-      onDragEnter={onDragEnter}
-      onDragLeave={onDragLeave}
-      onDragOver={onDragOver}
-      onDrop={onDrop}
-    >
-      <div className="space-y-2 md:space-y-4">
-        <div className="text-3xl md:text-6xl text-gray-400">📁</div>
-        <div>
-          {isMobile ? (
-            // Mobile layout - emphasize the button
-            <>
-              <p className="text-sm font-medium text-gray-700 mb-3">
-                Select your {acceptedFormats} files
-              </p>
-              <button
-                onClick={onFileSelect}
-                className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-8 py-5 rounded-lg font-semibold transition-colors text-lg w-full max-w-xs mx-auto block shadow-lg touch-manipulation"
-                style={{ minHeight: '60px' }}
-              >
-                📱 Choose Files
-              </button>
-              <p className="text-xs text-gray-500 mt-3">
-                Tap to browse and select multiple files
-              </p>
-            </>
-          ) : (
-            // Desktop layout - keep drag and drop
-            <>
-              <p className="text-xs md:text-lg font-medium text-gray-700 mb-1 md:mb-2">
-                Drag & drop your {acceptedFormats} files here
-              </p>
-              <p className="text-gray-500 mb-1 md:mb-4 text-xs md:text-sm">or</p>
-              <button
-                onClick={onFileSelect}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-3 md:px-6 py-1.5 md:py-2 rounded-lg font-medium transition-colors text-xs md:text-base"
-              >
-                Choose Files
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+	return (
+		<div
+			role="button"
+			tabIndex={0}
+			className={`relative min-h-[200px] flex flex-col items-center justify-center border border-gray-100 dark:border-neutral-800 rounded-3xl transition-all duration-500 ease-out cursor-pointer group hover:bg-gray-50/50 dark:hover:bg-neutral-900/50 ${
+				dragActive
+					? "bg-gray-50/80 dark:bg-neutral-900/80 scale-[0.98] border-black dark:border-white"
+					: ""
+			}`}
+			onClick={onFileSelect}
+			onKeyDown={(e) => {
+				if (e.key === "Enter" || e.key === " ") {
+					e.preventDefault();
+					onFileSelect();
+				}
+			}}
+			onDragEnter={onDragEnter}
+			onDragLeave={onDragLeave}
+			onDragOver={onDragOver}
+			onDrop={onDrop}
+		>
+			<div className="relative z-10 text-center px-6">
+				<div className="mb-4 flex justify-center">
+					<div className="w-10 h-10 flex items-center justify-center rounded-full bg-black dark:bg-white text-white dark:text-black transform group-hover:scale-110 transition-transform duration-500">
+						<svg
+							className="w-5 h-5"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={1.5}
+								d="M12 4v16m8-8H4"
+							/>
+						</svg>
+					</div>
+				</div>
+				<h3 className="text-lg font-display font-medium mb-1 text-black dark:text-white">
+					Add Images
+				</h3>
+				<p className="text-gray-400 dark:text-neutral-500 text-xs max-w-[180px] mx-auto leading-relaxed">
+					Tap or drop files to start
+				</p>
+			</div>
+		</div>
+	);
 };
 
 export default FileUploadZone;

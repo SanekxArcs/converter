@@ -27,10 +27,7 @@ const SEO: React.FC = () => {
   };
 
   return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-    />
+    <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
   );
 };
 

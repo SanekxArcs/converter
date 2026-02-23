@@ -1,72 +1,83 @@
 import React, { useState } from 'react';
-import type { ConvertedImage } from '../../types';
+import type { ConvertedImage, NamingSettings } from "../../types";
 import ConversionResultItem from './ConversionResultItem';
 import ImageComparison from '../ImageComparison/ImageComparison';
 
 interface ConversionResultsProps {
-  convertedImages: ConvertedImage[];
-  onDownloadSingle: (convertedImage: ConvertedImage) => void;
-  onDownloadAll: () => void;
-  onDownloadZip: () => void;
+	convertedImages: ConvertedImage[];
+	onDownloadSingle: (convertedImage: ConvertedImage) => void;
+	onDownloadAll: () => void;
+	onDownloadZip: () => void;
+	namingSettings: NamingSettings;
 }
 
 const ConversionResults: React.FC<ConversionResultsProps> = ({
-  convertedImages,
-  onDownloadSingle,
-  onDownloadAll,
-  onDownloadZip
+	convertedImages,
+	onDownloadSingle,
+	onDownloadAll,
+	onDownloadZip,
+	namingSettings,
 }) => {
-  const [comparisonImage, setComparisonImage] = useState<ConvertedImage | null>(null);
+	const [comparisonImage, setComparisonImage] = useState<ConvertedImage | null>(
+		null,
+	);
 
-  const handleCompareImage = (convertedImage: ConvertedImage) => {
-    setComparisonImage(convertedImage);
-  };
+	const handleCompareImage = (convertedImage: ConvertedImage) => {
+		setComparisonImage(convertedImage);
+	};
 
-  const handleCloseComparison = () => {
-    setComparisonImage(null);
-  };
+	const handleCloseComparison = () => {
+		setComparisonImage(null);
+	};
 
-  if (convertedImages.length === 0) return null;
-  return (    <div className="mt-2 md:mt-6 p-2 bg-green-50 rounded-lg">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-2 gap-2">
-        <h3 className="text-sm md:text-lg font-medium text-gray-800">
-          Conversion Results ({convertedImages.length})
-        </h3>
-        <div className="flex space-x-2">
-          <button
-            onClick={onDownloadAll}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-2 md:px-4 py-1 md:py-2 rounded-lg font-medium transition-colors text-xs md:text-sm"
-          >
-            Download All
-          </button>
-          <button
-            onClick={onDownloadZip}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-2 md:px-4 py-1 md:py-2 rounded-lg font-medium transition-colors text-xs md:text-sm"
-          >
-            Download ZIP
-          </button>
-        </div>
-      </div>
+	if (convertedImages.length === 0) return null;
+	return (
+		<div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-1000 relative">
+			<div className="flex items-center justify-between">
+				<h3 className="text-xl font-display font-medium text-black dark:text-white">
+					Results
+				</h3>
+			</div>
 
-      <div className="grid gap-2 md:gap-6 md:grid-cols-2">
-        {convertedImages.map((convertedImage) => (
-          <ConversionResultItem
-            key={convertedImage.id}
-            convertedImage={convertedImage}
-            onDownload={onDownloadSingle}
-            onCompare={handleCompareImage}
-          />
-        ))}
-      </div>
-      
-      {comparisonImage && (
-        <ImageComparison
-          convertedImage={comparisonImage}
-          onClose={handleCloseComparison}
-        />
-      )}
-    </div>
-  );
+			<div className="grid grid-cols-1 gap-4">
+				{convertedImages.map((convertedImage, index) => (
+					<ConversionResultItem
+						key={convertedImage.id}
+						convertedImage={convertedImage}
+						onDownload={() => onDownloadSingle(convertedImage)}
+						onCompare={() => handleCompareImage(convertedImage)}
+						namingSettings={namingSettings}
+						index={index}
+					/>
+				))}
+			</div>
+
+			{/* Sticky Results Actions */}
+			<div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-[480px] px-6 z-40">
+				<div className="bg-black/90 dark:bg-white/90 backdrop-blur-lg rounded-[2rem] p-2 flex gap-2 shadow-2xl shadow-black/20 dark:shadow-white/10 border border-white/5 dark:border-black/5">
+					<button
+						onClick={onDownloadAll}
+						className="flex-1 h-14 rounded-[1.5rem] bg-white dark:bg-black text-black dark:text-white text-[10px] uppercase tracking-[0.2em] font-bold hover:bg-gray-100 dark:hover:bg-neutral-800 transition-all active:scale-95"
+					>
+						Download All
+					</button>
+					<button
+						onClick={onDownloadZip}
+						className="flex-1 h-14 rounded-[1.5rem] bg-transparent text-white dark:text-black border border-white/10 dark:border-black/10 text-[10px] uppercase tracking-[0.2em] font-bold hover:bg-white/5 dark:hover:bg-black/5 transition-all active:scale-95"
+					>
+						Save as ZIP
+					</button>
+				</div>
+			</div>
+
+			{comparisonImage && (
+				<ImageComparison
+					convertedImage={comparisonImage}
+					onClose={handleCloseComparison}
+				/>
+			)}
+		</div>
+	);
 };
 
 export default ConversionResults;

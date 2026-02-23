@@ -102,23 +102,31 @@ export const hasSensitiveExifData = (exifData: ExifData): boolean => {
  */
 export const sanitizeExifData = (exifData: ExifData): ExifData => {
   const sanitized = { ...exifData };
-  
+
   // Remove GPS data
   const gpsFields = [
-    'GPSLatitude', 'GPSLongitude', 'GPSAltitude', 'GPSTimeStamp', 'GPSDateStamp',
-    'GPSLatitudeRef', 'GPSLongitudeRef', 'GPSAltitudeRef', 'GPSMapDatum',
-    'GPSProcessingMethod', 'GPSAreaInformation'
+    "GPSLatitude",
+    "GPSLongitude",
+    "GPSAltitude",
+    "GPSTimeStamp",
+    "GPSDateStamp",
+    "GPSLatitudeRef",
+    "GPSLongitudeRef",
+    "GPSAltitudeRef",
+    "GPSMapDatum",
+    "GPSProcessingMethod",
+    "GPSAreaInformation",
   ];
-  
-  gpsFields.forEach(field => {
+
+  gpsFields.forEach((field) => {
     delete sanitized[field];
   });
-  
+
   // Optionally remove timestamp data
   delete sanitized.DateTime;
   delete sanitized.DateTimeOriginal;
   delete sanitized.DateTimeDigitized;
-  
+
   return sanitized;
 };
 

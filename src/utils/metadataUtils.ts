@@ -4,26 +4,34 @@ import type { ImageMetadata } from '../types';
  * Generate automatic metadata based on file information
  */
 export const generateAutoMetadata = (file: File): ImageMetadata => {
-  const fileName = file.name.replace(/\.(png|avif|jpe?g|gif)$/i, '');
-  
+  const fileName = file.name.replace(/\.(png|avif|jpe?g|gif)$/i, "");
+
   return {
-    title: fileName.replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    title: fileName
+      .replace(/[-_]/g, " ")
+      .replace(/\b\w/g, (l) => l.toUpperCase()),
     description: `Image file: ${fileName}`,
-    keywords: fileName.toLowerCase().split(/[-_\s]+/).filter(Boolean)
+    keywords: fileName
+      .toLowerCase()
+      .split(/[-_\s]+/)
+      .filter(Boolean),
   };
 };
 
 /**
  * Merge user metadata with auto-generated metadata
  */
-export const mergeMetadata = (userMetadata: ImageMetadata, autoMetadata: ImageMetadata): ImageMetadata => {
+export const mergeMetadata = (
+  userMetadata: ImageMetadata,
+  autoMetadata: ImageMetadata,
+): ImageMetadata => {
   return {
     ...autoMetadata,
     ...userMetadata, // User metadata takes precedence
     keywords: [
       ...(autoMetadata.keywords || []),
-      ...(userMetadata.keywords || [])
-    ].filter((keyword, index, arr) => arr.indexOf(keyword) === index) // Remove duplicates
+      ...(userMetadata.keywords || []),
+    ].filter((keyword, index, arr) => arr.indexOf(keyword) === index), // Remove duplicates
   };
 };
 

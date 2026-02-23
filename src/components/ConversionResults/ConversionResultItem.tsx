@@ -1,124 +1,136 @@
-import React from 'react';
-import type { ConvertedImage } from '../../types';
-import { formatFileSize } from '../../utils/fileUtils';
+import React, { useMemo, useEffect, useState } from "react";
+import type { ConvertedImage, NamingSettings } from "../../types";
+import { formatFileSize } from "../../utils/fileUtils";
+import { generateFileName } from "../../services/downloadService";
 
 interface ConversionResultItemProps {
-  convertedImage: ConvertedImage;
-  onDownload: (convertedImage: ConvertedImage) => void;
-  onCompare: (convertedImage: ConvertedImage) => void;
+	convertedImage: ConvertedImage;
+	onDownload: (convertedImage: ConvertedImage) => void;
+	onCompare: (convertedImage: ConvertedImage) => void;
+	namingSettings: NamingSettings;
+	index: number;
 }
 
 const ConversionResultItem: React.FC<ConversionResultItemProps> = ({
-  convertedImage,
-  onDownload,
-  onCompare
+	convertedImage,
+	onDownload,
+	onCompare,
+	namingSettings,
+	index,
 }) => {
-  const getOriginalFileType = (mimeType: string): string => {
-    switch (mimeType) {
-      case 'image/png': return 'PNG';
-      case 'image/avif': return 'AVIF';
-      case 'image/jpeg': return 'JPEG';
-      case 'image/gif': return 'GIF';
-      default: return 'Image';
-    }
-  };
-  return (    <div className="bg-white p-2 rounded-lg">
-      <h4 className="font-medium text-gray-700 mb-2 text-xs md:text-base">
-        {convertedImage.originalFile.name.replace(/\.(png|avif|jpe?g|gif)$/i, '.webp')}
-      </h4>
+	const [previewUrl, setPreviewUrl] = useState<string>("");
 
-      {/* Metadata Display */}
-      {convertedImage.metadata && Object.values(convertedImage.metadata).some(Boolean) && (
-        <div className="mb-2 p-2 bg-gray-50 rounded-md">
-          <p className="text-xs font-medium text-gray-600 mb-1">Metadata:</p>
-          {convertedImage.metadata.author && (
-            <p className="text-xs text-gray-600">
-              <span className="font-medium">Author:</span> {convertedImage.metadata.author}
-            </p>
-          )}
-          {convertedImage.metadata.title && (
-            <p className="text-xs text-gray-600">
-              <span className="font-medium">Title:</span> {convertedImage.metadata.title}
-            </p>
-          )}
-          {convertedImage.metadata.copyright && (
-            <p className="text-xs text-gray-600">
-              <span className="font-medium">Copyright:</span> {convertedImage.metadata.copyright}
-            </p>
-          )}
-        </div>
-      )}
-      
-      {/* EXIF Data Display */}
-      {convertedImage.originalExif && (
-        <div className="mb-2 p-2 bg-blue-50 rounded-md">
-          <p className="text-xs font-medium text-blue-600 mb-1">
-            EXIF Data: {convertedImage.preservedExif ? 'Preserved' : 'Available'}
-          </p>
-          <p className="text-xs text-blue-600">
-            {Object.keys(convertedImage.originalExif).length} fields detected
-          </p>
-        </div>
-      )}
-      
-      <div className="grid grid-cols-2 gap-2 mb-2">
-        <div>
-          <p className="text-xs font-medium text-gray-600 mb-1">
-            Original {getOriginalFileType(convertedImage.originalFile.type)}
-          </p>
-          <img
-            src={URL.createObjectURL(convertedImage.originalFile)}
-            alt="Original"
-            className="w-full h-12 md:h-20 object-cover rounded-md mb-1"
-          />
-          <p className="text-xs text-gray-500">
-            {formatFileSize(convertedImage.originalSize)}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs font-medium text-gray-600 mb-1">WebP</p>
-          <img
-            src={URL.createObjectURL(convertedImage.webpBlob)}
-            alt="Converted"
-            className="w-full h-12 md:h-20 object-cover rounded-md mb-1"
-          />
-          <p className="text-xs text-gray-500">
-            {formatFileSize(convertedImage.webpSize)}
-          </p>
-        </div>
-      </div>
-      
-      <div className="mb-2">
-        <div className="flex justify-between items-center mb-1">
-          <span className="text-xs font-medium text-gray-600">Compression:</span>
-          <span className="text-xs font-bold text-green-600">
-            {convertedImage.compressionRatio.toFixed(1)}% smaller
-          </span>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-1.5">
-          <div
-            className="bg-green-500 h-1.5 rounded-full transition-all duration-300"
-            style={{ width: `${Math.max(0, convertedImage.compressionRatio)}%` }}
-          />
-        </div>
-      </div>
+	useEffect(() => {
+		const url = URL.createObjectURL(convertedImage.webpBlob);
+		setPreviewUrl(url);
+		return () => URL.revokeObjectURL(url);
+	}, [convertedImage.webpBlob]);
 
-      <div className="space-y-2">
-        <button
-          onClick={() => onCompare(convertedImage)}
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-1.5 px-3 rounded-md font-medium transition-colors text-xs md:text-sm"
-        >
-          Compare Images
-        </button>
-        <button
-          onClick={() => onDownload(convertedImage)}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-1.5 px-3 rounded-md font-medium transition-colors text-xs md:text-sm"
-        >
-          Download WebP
-        </button>
-      </div>
-    </div>
-  );
+	const getOriginalFileType = (mimeType: string): string => {
+		switch (mimeType) {
+			case "image/png":
+				return "PNG";
+			case "image/avif":
+				return "AVIF";
+			case "image/jpeg":
+				return "JPEG";
+			case "image/gif":
+				return "GIF";
+			default:
+				return "IMG";
+		}
+	};
+
+	const originalFileName = useMemo(
+		() =>
+			convertedImage.originalFile.name.replace(
+				/\.(png|avif|jpe?g|gif)$/i,
+				".webp",
+			),
+		[convertedImage.originalFile.name],
+	);
+
+	const newFileName = useMemo(
+		() => generateFileName(convertedImage, namingSettings, index),
+		[convertedImage, namingSettings, index],
+	);
+
+	const hasRenamed = originalFileName !== newFileName;
+
+	return (
+		<div className="bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 p-5 rounded-[2rem] group animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out hover:shadow-2xl hover:shadow-black/5 dark:hover:shadow-white/5 transition-all overflow-hidden text-black dark:text-white">
+			<div className="flex gap-4 mb-6">
+				{/* Image Preview */}
+				<div className="w-20 h-20 rounded-2xl bg-gray-50 dark:bg-neutral-800 flex-shrink-0 overflow-hidden border border-black/5 dark:border-white/5 relative">
+					{previewUrl ? (
+						<img
+							src={previewUrl}
+							alt="Result Preview"
+							className="w-full h-full object-cover"
+						/>
+					) : (
+						<div className="w-full h-full animate-pulse bg-gray-100 dark:bg-neutral-700" />
+					)}
+					<div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 dark:group-hover:bg-white/5 transition-colors" />
+				</div>
+
+				<div className="flex-1 min-w-0 flex flex-col justify-center">
+					<div className="flex items-center justify-between mb-1.5">
+						<div className="flex items-center gap-1.5">
+							<span className="px-2 py-0.5 bg-gray-100 dark:bg-neutral-800 text-[9px] font-bold text-gray-500 dark:text-neutral-400 rounded-lg uppercase tracking-wider">
+								WebP
+							</span>
+							<span className="text-[10px] text-gray-300 dark:text-neutral-600 uppercase tracking-widest font-medium">
+								from {getOriginalFileType(convertedImage.originalFile.type)}
+							</span>
+						</div>
+						<span className="text-[10px] font-mono text-black/20 dark:text-white/20 font-medium">
+							{formatFileSize(convertedImage.webpSize)}
+						</span>
+					</div>
+
+					<div className="pr-4 space-y-1">
+						{hasRenamed && (
+							<h5 className="text-[11px] text-gray-300 dark:text-neutral-600 line-through truncate leading-tight font-medium decoration-gray-200 dark:decoration-neutral-800">
+								{originalFileName}
+							</h5>
+						)}
+						<h4
+							className="font-display font-medium text-black dark:text-white text-base leading-tight truncate"
+							title={newFileName}
+						>
+							{newFileName}
+						</h4>
+					</div>
+				</div>
+
+				<div className="flex-shrink-0 flex items-center">
+					<div className="flex flex-col items-center justify-center min-w-[3.5rem] h-8 bg-black dark:bg-white rounded-xl shadow-lg shadow-black/10 dark:shadow-white/5">
+						<span className="text-[11px] font-bold text-white dark:text-black tracking-tighter">
+							-{convertedImage.compressionRatio.toFixed(0)}%
+						</span>
+					</div>
+				</div>
+			</div>
+
+			<div className="flex items-center gap-3">
+				<button
+					type="button"
+					onClick={() => onCompare(convertedImage)}
+					className="flex-1 h-12 border border-black/5 dark:border-white/10 text-black dark:text-white text-[10px] uppercase tracking-[0.2em] rounded-2xl hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all font-bold"
+				>
+					Compare
+				</button>
+				<button
+					type="button"
+					onClick={() => onDownload(convertedImage)}
+					className="flex-1 h-12 bg-black dark:bg-white text-white dark:text-black text-[10px] uppercase tracking-[0.2em] rounded-2xl hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all font-bold shadow-lg shadow-black/5 dark:shadow-white/5 active:scale-[0.98]"
+				>
+					Download
+				</button>
+			</div>
+		</div>
+	);
 };
 
 export default ConversionResultItem;

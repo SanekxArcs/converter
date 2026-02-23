@@ -7,12 +7,21 @@ export interface ImageMetadata {
 }
 
 export interface ExifData {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 
 export interface ConversionSettings {
   preserveExif: boolean;
   stripExif: boolean;
+  sanitizeExif: boolean;
+}
+
+export interface NamingSettings {
+  customName: string;
+  addNumber: boolean;
+  addDate: boolean;
+  addTime: boolean;
 }
 
 export interface ConvertedImage {
@@ -33,14 +42,7 @@ export interface SelectedFile {
   file: File;
   preview: string;
   exifData?: ExifData;
-}
-
-export interface ComparisonViewSettings {
-  enabled: boolean;
-  zoomLevel: number;
-  showOriginal: boolean;
-  showConverted: boolean;
-  splitView: boolean;
+  autoMetadata?: ImageMetadata;
 }
 
 export const SUPPORTED_MIME_TYPES = [

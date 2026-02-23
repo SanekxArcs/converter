@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useReducer, useRef, useCallback, useEffect } from "react";
 import type { ConvertedImage } from '../../types';
 
 interface ImageComparisonProps {
@@ -6,276 +6,472 @@ interface ImageComparisonProps {
   onClose: () => void;
 }
 
+interface ComparisonState {
+	zoomLevel: number;
+	panPosition: { x: number; y: number };
+	isDragging: boolean;
+	dragStart: { x: number; y: number };
+	showSplit: boolean;
+	splitPosition: number;
+}
+
+type ComparisonAction =
+	| { type: "ZOOM_IN" }
+	| { type: "ZOOM_OUT" }
+	| { type: "ZOOM_RESET" }
+	| { type: "ZOOM_WHEEL"; delta: number }
+	| { type: "DRAG_START"; x: number; y: number }
+	| { type: "DRAG_MOVE"; x: number; y: number }
+	| { type: "DRAG_END" }
+	| { type: "SET_SPLIT_VIEW"; show: boolean }
+	| { type: "SET_SPLIT_POSITION"; position: number };
+
+const comparisonReducer = (
+	state: ComparisonState,
+	action: ComparisonAction,
+): ComparisonState => {
+	switch (action.type) {
+		case "ZOOM_IN":
+			return { ...state, zoomLevel: Math.min(state.zoomLevel * 1.5, 5) };
+		case "ZOOM_OUT":
+			return { ...state, zoomLevel: Math.max(state.zoomLevel / 1.5, 0.1) };
+		case "ZOOM_RESET":
+			return { ...state, zoomLevel: 1, panPosition: { x: 0, y: 0 } };
+		case "ZOOM_WHEEL":
+			return {
+				...state,
+				zoomLevel: Math.max(0.1, Math.min(5, state.zoomLevel * action.delta)),
+			};
+		case "DRAG_START":
+			if (state.zoomLevel <= 1) return state;
+			return {
+				...state,
+				isDragging: true,
+				dragStart: {
+					x: action.x - state.panPosition.x,
+					y: action.y - state.panPosition.y,
+				},
+			};
+		case "DRAG_MOVE":
+			if (!state.isDragging || state.zoomLevel <= 1) return state;
+			return {
+				...state,
+				panPosition: {
+					x: action.x - state.dragStart.x,
+					y: action.y - state.dragStart.y,
+				},
+			};
+		case "DRAG_END":
+			return { ...state, isDragging: false };
+		case "SET_SPLIT_VIEW":
+			return { ...state, showSplit: action.show };
+		case "SET_SPLIT_POSITION":
+			return {
+				...state,
+				splitPosition: Math.max(0, Math.min(100, action.position)),
+			};
+		default:
+			return state;
+	}
+};
+
 const ImageComparison: React.FC<ImageComparisonProps> = ({ convertedImage, onClose }) => {
-  const [zoomLevel, setZoomLevel] = useState(1);
-  const [panPosition, setPanPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [showSplit, setShowSplit] = useState(true);
-  const [splitPosition, setSplitPosition] = useState(50);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const originalImageRef = useRef<HTMLImageElement>(null);
-  const convertedImageRef = useRef<HTMLImageElement>(null);
+  const [state, dispatch] = useReducer(comparisonReducer, {
+			zoomLevel: 1,
+			panPosition: { x: 0, y: 0 },
+			isDragging: false,
+			dragStart: { x: 0, y: 0 },
+			showSplit: true,
+			splitPosition: 50,
+		});
 
-  // Create object URLs for images
-  const originalUrl = URL.createObjectURL(convertedImage.originalFile);
-  const convertedUrl = URL.createObjectURL(convertedImage.webpBlob);
+		const containerRef = useRef<HTMLDivElement>(null);
+		const originalImageRef = useRef<HTMLImageElement>(null);
+		const convertedImageRef = useRef<HTMLImageElement>(null);
 
-  // Cleanup URLs on unmount
-  useEffect(() => {
-    return () => {
-      URL.revokeObjectURL(originalUrl);
-      URL.revokeObjectURL(convertedUrl);
-    };
-  }, [originalUrl, convertedUrl]);
+		// Create object URLs for images
+		const originalUrl = URL.createObjectURL(convertedImage.originalFile);
+		const convertedUrl = URL.createObjectURL(convertedImage.webpBlob);
 
-  const handleZoomIn = useCallback(() => {
-    setZoomLevel(prev => Math.min(prev * 1.5, 5));
-  }, []);
+		// Cleanup URLs on unmount
+		useEffect(() => {
+			return () => {
+				URL.revokeObjectURL(originalUrl);
+				URL.revokeObjectURL(convertedUrl);
+			};
+		}, [originalUrl, convertedUrl]);
 
-  const handleZoomOut = useCallback(() => {
-    setZoomLevel(prev => Math.max(prev / 1.5, 0.1));
-  }, []);
+		const handleZoomIn = useCallback(() => dispatch({ type: "ZOOM_IN" }), []);
+		const handleZoomOut = useCallback(() => dispatch({ type: "ZOOM_OUT" }), []);
+		const handleZoomReset = useCallback(
+			() => dispatch({ type: "ZOOM_RESET" }),
+			[],
+		);
 
-  const handleZoomReset = useCallback(() => {
-    setZoomLevel(1);
-    setPanPosition({ x: 0, y: 0 });
-  }, []);
+		const handleMouseDown = useCallback((e: React.MouseEvent) => {
+			dispatch({ type: "DRAG_START", x: e.clientX, y: e.clientY });
+		}, []);
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (zoomLevel > 1) {
-      setIsDragging(true);
-      setDragStart({ x: e.clientX - panPosition.x, y: e.clientY - panPosition.y });
-    }
-  }, [zoomLevel, panPosition]);
+		const handleMouseMove = useCallback((e: React.MouseEvent) => {
+			dispatch({ type: "DRAG_MOVE", x: e.clientX, y: e.clientY });
+		}, []);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (isDragging && zoomLevel > 1) {
-      setPanPosition({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y
-      });
-    }
-  }, [isDragging, dragStart, zoomLevel]);
+		const handleMouseUp = useCallback(() => {
+			dispatch({ type: "DRAG_END" });
+		}, []);
 
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
+		const handleWheel = useCallback((e: React.WheelEvent) => {
+			e.preventDefault();
+			const delta = e.deltaY > 0 ? 0.9 : 1.1;
+			dispatch({ type: "ZOOM_WHEEL", delta });
+		}, []);
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    setZoomLevel(prev => Math.max(0.1, Math.min(5, prev * delta)));
-  }, []);
+		const handleTouchStart = useCallback((e: React.TouchEvent) => {
+			if (e.touches.length === 1) {
+				dispatch({
+					type: "DRAG_START",
+					x: e.touches[0].clientX,
+					y: e.touches[0].clientY,
+				});
+			}
+		}, []);
 
-  const handleSplitDrag = useCallback((e: React.MouseEvent) => {
-    if (!containerRef.current) return;
-    
-    const rect = containerRef.current.getBoundingClientRect();
-    const newPosition = ((e.clientX - rect.left) / rect.width) * 100;
-    setSplitPosition(Math.max(0, Math.min(100, newPosition)));
-  }, []);
+		const handleTouchMove = useCallback((e: React.TouchEvent) => {
+			if (e.touches.length === 1) {
+				dispatch({
+					type: "DRAG_MOVE",
+					x: e.touches[0].clientX,
+					y: e.touches[0].clientY,
+				});
+			}
+		}, []);
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
+		const handleSplitDrag = useCallback(
+			(e: React.MouseEvent | React.TouchEvent) => {
+				if (!containerRef.current) return;
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex flex-col">
-      {/* Header */}
-      <div className="bg-gray-900 text-white p-4 flex justify-between items-center">
-        <div className="flex items-center space-x-4">
-          <h2 className="text-xl font-semibold">Image Comparison</h2>
-          <div className="text-sm text-gray-300">
-            {convertedImage.originalFile.name}
-          </div>
-        </div>
-        
-        <div className="flex items-center space-x-4">
-          {/* View Controls */}
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setShowSplit(!showSplit)}
-              className={`px-3 py-1 rounded text-sm ${
-                showSplit ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'
-              }`}
-            >
-              Split View
-            </button>
-          </div>
-          
-          {/* Zoom Controls */}
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={handleZoomOut}
-              className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded"
-            >
-              -
-            </button>
-            <span className="text-sm min-w-[60px] text-center">
-              {Math.round(zoomLevel * 100)}%
-            </span>
-            <button
-              onClick={handleZoomIn}
-              className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded"
-            >
-              +
-            </button>
-            <button
-              onClick={handleZoomReset}
-              className="bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-sm"
-            >
-              Reset
-            </button>
-          </div>
-          
-          <button
-            onClick={onClose}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-          >
-            Close
-          </button>
-        </div>
-      </div>
+				const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+				const rect = containerRef.current.getBoundingClientRect();
+				const newPosition = ((clientX - rect.left) / rect.width) * 100;
+				dispatch({ type: "SET_SPLIT_POSITION", position: newPosition });
+			},
+			[],
+		);
 
-      {/* Image Container */}
-      <div 
-        ref={containerRef}
-        className="flex-1 relative overflow-hidden cursor-move"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onWheel={handleWheel}
-      >
-        {showSplit ? (
-          // Split view
-          <div className="relative w-full h-full">
-            {/* Original Image */}
-            <div 
-              className="absolute inset-0 overflow-hidden"
-              style={{ clipPath: `inset(0 ${100 - splitPosition}% 0 0)` }}
-            >
-              <img
-                ref={originalImageRef}
-                src={originalUrl}
-                alt="Original"
-                className="w-full h-full object-contain"
-                style={{
-                  transform: `scale(${zoomLevel}) translate(${panPosition.x / zoomLevel}px, ${panPosition.y / zoomLevel}px)`,
-                  transformOrigin: 'center'
-                }}
-                draggable={false}
-              />
-            </div>
-            
-            {/* Converted Image */}
-            <div 
-              className="absolute inset-0 overflow-hidden"
-              style={{ clipPath: `inset(0 0 0 ${splitPosition}%)` }}
-            >
-              <img
-                ref={convertedImageRef}
-                src={convertedUrl}
-                alt="Converted"
-                className="w-full h-full object-contain"
-                style={{
-                  transform: `scale(${zoomLevel}) translate(${panPosition.x / zoomLevel}px, ${panPosition.y / zoomLevel}px)`,
-                  transformOrigin: 'center'
-                }}
-                draggable={false}
-              />
-            </div>
-            
-            {/* Split Line */}
-            <div
-              className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize z-10 shadow-lg"
-              style={{ left: `${splitPosition}%`, transform: 'translateX(-50%)' }}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                const handleMouseMove = (e: MouseEvent) => handleSplitDrag(e as any);
-                const handleMouseUp = () => {
-                  document.removeEventListener('mousemove', handleMouseMove);
-                  document.removeEventListener('mouseup', handleMouseUp);
-                };
-                document.addEventListener('mousemove', handleMouseMove);
-                document.addEventListener('mouseup', handleMouseUp);
-              }}
-            >
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-white rounded-full shadow-lg flex items-center justify-center">
-                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-              </div>
-            </div>
-            
-            {/* Labels */}
-            <div className="absolute top-4 left-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded text-sm">
-              Original ({formatFileSize(convertedImage.originalSize)})
-            </div>
-            <div className="absolute top-4 right-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded text-sm">
-              WebP ({formatFileSize(convertedImage.webpSize)}) - {convertedImage.compressionRatio.toFixed(1)}% smaller
-            </div>
-          </div>
-        ) : (
-          // Side by side view
-          <div className="flex w-full h-full">
-            <div className="flex-1 relative overflow-hidden">
-              <img
-                ref={originalImageRef}
-                src={originalUrl}
-                alt="Original"
-                className="w-full h-full object-contain"
-                style={{
-                  transform: `scale(${zoomLevel}) translate(${panPosition.x / zoomLevel}px, ${panPosition.y / zoomLevel}px)`,
-                  transformOrigin: 'center'
-                }}
-                draggable={false}
-              />
-              <div className="absolute top-4 left-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded text-sm">
-                Original ({formatFileSize(convertedImage.originalSize)})
-              </div>
-            </div>
-            
-            <div className="w-px bg-gray-600"></div>
-            
-            <div className="flex-1 relative overflow-hidden">
-              <img
-                ref={convertedImageRef}
-                src={convertedUrl}
-                alt="Converted"
-                className="w-full h-full object-contain"
-                style={{
-                  transform: `scale(${zoomLevel}) translate(${panPosition.x / zoomLevel}px, ${panPosition.y / zoomLevel}px)`,
-                  transformOrigin: 'center'
-                }}
-                draggable={false}
-              />
-              <div className="absolute top-4 right-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded text-sm">
-                WebP ({formatFileSize(convertedImage.webpSize)}) - {convertedImage.compressionRatio.toFixed(1)}% smaller
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+		const formatFileSize = (bytes: number): string => {
+			if (bytes === 0) return "0 B";
+			const k = 1024;
+			const sizes = ["B", "KB", "MB", "GB"];
+			const i = Math.floor(Math.log(bytes) / Math.log(k));
+			return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+		};
 
-      {/* Footer with stats */}
-      <div className="bg-gray-900 text-white p-4">
-        <div className="flex justify-between items-center text-sm">
-          <div className="flex space-x-6">
-            <span>Quality: {convertedImage.quality}%</span>
-            <span>Compression: {convertedImage.compressionRatio.toFixed(1)}%</span>
-            <span>Size Reduction: {formatFileSize(convertedImage.originalSize - convertedImage.webpSize)}</span>
-          </div>
-          <div className="text-gray-400">
-            Use mouse wheel to zoom • Drag to pan when zoomed • Drag the white line to adjust split
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+		return (
+			<div className="fixed inset-0 bg-black z-50 flex flex-col animate-in fade-in duration-300">
+				{/* Header */}
+				<div className="bg-black border-b border-white/10 p-4 md:p-6 flex items-center justify-between">
+					<div className="space-y-0.5">
+						<h2 className="text-lg font-display font-medium text-white tracking-tight">
+							Comparison
+						</h2>
+						<div className="text-[10px] text-white/40 font-medium uppercase tracking-widest truncate max-w-[150px] md:max-w-md">
+							{convertedImage.originalFile.name}
+						</div>
+					</div>
+
+					<div className="flex items-center gap-6">
+						{/* View Toggle */}
+						<div className="hidden md:flex items-center gap-4">
+							<button
+								type="button"
+								onClick={() => dispatch({ type: "SET_SPLIT_VIEW", show: true })}
+								className={`text-[10px] uppercase tracking-widest transition-colors ${
+									state.showSplit
+										? "text-white"
+										: "text-white/30 hover:text-white/60"
+								}`}
+							>
+								Split
+							</button>
+							<div className="w-px h-2 bg-white/10" />
+							<button
+								type="button"
+								onClick={() =>
+									dispatch({ type: "SET_SPLIT_VIEW", show: false })
+								}
+								className={`text-[10px] uppercase tracking-widest transition-colors ${
+									!state.showSplit
+										? "text-white"
+										: "text-white/30 hover:text-white/60"
+								}`}
+							>
+								Side
+							</button>
+						</div>
+
+						{/* Zoom Info */}
+						<div className="flex items-center gap-3">
+							<button
+								type="button"
+								onClick={handleZoomOut}
+								className="text-white/40 hover:text-white transition-colors"
+							>
+								<svg
+									className="w-4 h-4"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={1.5}
+										d="M20 12H4"
+									/>
+								</svg>
+							</button>
+							<span className="text-[10px] font-medium text-white/40 w-8 text-center tabular-nums">
+								{Math.round(state.zoomLevel * 100)}%
+							</span>
+							<button
+								type="button"
+								onClick={handleZoomIn}
+								className="text-white/40 hover:text-white transition-colors"
+							>
+								<svg
+									className="w-4 h-4"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={1.5}
+										d="M12 4v16m8-8H4"
+									/>
+								</svg>
+							</button>
+						</div>
+
+						<button
+							type="button"
+							onClick={handleZoomReset}
+							className="px-4 py-2 border border-white/10 rounded-full text-[9px] uppercase tracking-widest text-white/60 hover:text-white hover:bg-white/5 transition-all"
+						>
+							Reset
+						</button>
+
+						<button
+							type="button"
+							onClick={onClose}
+							className="text-[10px] text-white/40 hover:text-white font-medium uppercase tracking-widest transition-colors"
+						>
+							Close
+						</button>
+					</div>
+				</div>
+
+				<div
+					role="presentation"
+					ref={containerRef}
+					className="flex-1 relative overflow-hidden cursor-move bg-[#050505] touch-none"
+					onMouseDown={handleMouseDown}
+					onMouseMove={handleMouseMove}
+					onMouseUp={handleMouseUp}
+					onMouseLeave={handleMouseUp}
+					onTouchStart={handleTouchStart}
+					onTouchMove={handleTouchMove}
+					onTouchEnd={handleMouseUp}
+					onWheel={handleWheel}
+				>
+					{state.showSplit ? (
+						<div className="relative w-full h-full">
+							{/* Original */}
+							<div
+								className="absolute inset-0 overflow-hidden"
+								style={{
+									clipPath: `inset(0 ${100 - state.splitPosition}% 0 0)`,
+								}}
+							>
+								<img
+									ref={originalImageRef}
+									src={originalUrl}
+									alt="Original"
+									className="w-full h-full object-contain"
+									style={{
+										transform: `scale(${state.zoomLevel}) translate(${state.panPosition.x / state.zoomLevel}px, ${state.panPosition.y / state.zoomLevel}px)`,
+										transformOrigin: "center",
+									}}
+									draggable={false}
+								/>
+							</div>
+
+							{/* Converted */}
+							<div
+								className="absolute inset-0 overflow-hidden"
+								style={{ clipPath: `inset(0 0 0 ${state.splitPosition}%)` }}
+							>
+								<img
+									ref={convertedImageRef}
+									src={convertedUrl}
+									alt="Converted"
+									className="w-full h-full object-contain"
+									style={{
+										transform: `scale(${state.zoomLevel}) translate(${state.panPosition.x / state.zoomLevel}px, ${state.panPosition.y / state.zoomLevel}px)`,
+										transformOrigin: "center",
+									}}
+									draggable={false}
+								/>
+							</div>
+
+							{/* Split UI */}
+							<div
+								className="absolute top-0 bottom-0 w-12 -ml-6 cursor-ew-resize z-20 flex items-center justify-center touch-none"
+								style={{ left: `${state.splitPosition}%` }}
+								onMouseDown={(e) => {
+									e.preventDefault();
+									const handleMove = (ev: MouseEvent) =>
+										handleSplitDrag(ev as any);
+									const handleUp = () => {
+										document.removeEventListener("mousemove", handleMove);
+										document.removeEventListener("mouseup", handleUp);
+									};
+									document.addEventListener("mousemove", handleMove);
+									document.addEventListener("mouseup", handleUp);
+								}}
+								onTouchStart={() => {
+									const handleMove = (ev: TouchEvent) =>
+										handleSplitDrag(ev as any);
+									const handleUp = () => {
+										document.removeEventListener("touchmove", handleMove);
+										document.removeEventListener("touchend", handleUp);
+									};
+									document.addEventListener("touchmove", handleMove, {
+										passive: false,
+									});
+									document.addEventListener("touchend", handleUp);
+								}}
+							>
+								<div className="w-1 h-32 bg-white/20 rounded-full" />
+								<div className="absolute w-10 h-10 rounded-full border border-white/20 bg-black/80 backdrop-blur-md flex items-center justify-center shadow-xl shadow-black/50 overflow-hidden">
+									<div className="flex gap-1">
+										<div className="w-0.5 h-3 bg-white/60 rounded-full" />
+										<div className="w-0.5 h-3 bg-white/60 rounded-full" />
+									</div>
+								</div>
+							</div>
+
+							{/* Labels */}
+							<div className="absolute top-4 left-4 flex gap-2">
+								<span className="text-[10px] uppercase tracking-widest text-white/40 bg-black/40 px-2 py-1 rounded">
+									Original
+								</span>
+							</div>
+							<div className="absolute top-4 right-4 flex gap-2">
+								<span className="text-[10px] uppercase tracking-widest text-white bg-black/40 px-2 py-1 rounded">
+									WebP
+								</span>
+							</div>
+						</div>
+					) : (
+						<div className="flex w-full h-full">
+							<div className="flex-1 relative border-r border-white/5">
+								<img
+									ref={originalImageRef}
+									src={originalUrl}
+									alt="Original"
+									className="w-full h-full object-contain"
+									style={{
+										transform: `scale(${state.zoomLevel}) translate(${state.panPosition.x / state.zoomLevel}px, ${state.panPosition.y / state.zoomLevel}px)`,
+										transformOrigin: "center",
+									}}
+									draggable={false}
+								/>
+								<span className="absolute top-4 left-4 text-[10px] uppercase tracking-widest text-white/40 bg-black/40 px-2 py-1 rounded">
+									Original
+								</span>
+							</div>
+							<div className="flex-1 relative">
+								<img
+									ref={convertedImageRef}
+									src={convertedUrl}
+									alt="Converted"
+									className="w-full h-full object-contain"
+									style={{
+										transform: `scale(${state.zoomLevel}) translate(${state.panPosition.x / state.zoomLevel}px, ${state.panPosition.y / state.zoomLevel}px)`,
+										transformOrigin: "center",
+									}}
+									draggable={false}
+								/>
+								<span className="absolute top-4 left-4 text-[10px] uppercase tracking-widest text-white bg-black/40 px-2 py-1 rounded">
+									WebP
+								</span>
+							</div>
+						</div>
+					)}
+				</div>
+
+				{/* Footer Stats */}
+				<div className="bg-black border-t border-white/10 p-6 md:p-8">
+					<div className="max-w-2xl mx-auto flex flex-wrap items-center justify-between gap-8">
+						<div className="flex flex-col gap-1">
+							<span className="text-[10px] uppercase tracking-widest text-white/30">
+								Original Size
+							</span>
+							<span className="text-sm font-medium text-white/60 tabular-nums">
+								{formatFileSize(convertedImage.originalSize)}
+							</span>
+						</div>
+
+						<div className="flex flex-col gap-1">
+							<span className="text-[10px] uppercase tracking-widest text-white/30">
+								New Size
+							</span>
+							<span className="text-sm font-medium text-white tabular-nums">
+								{formatFileSize(convertedImage.webpSize)}
+							</span>
+						</div>
+
+						<div className="flex flex-col gap-1">
+							<span className="text-[10px] uppercase tracking-widest text-white/30">
+								Reduction
+							</span>
+							<span className="text-sm font-medium text-white tabular-nums">
+								-{convertedImage.compressionRatio.toFixed(1)}%
+							</span>
+						</div>
+
+						<div className="hidden md:flex flex-col gap-1">
+							<span className="text-[10px] uppercase tracking-widest text-white/30">
+								Savings
+							</span>
+							<span className="text-sm font-medium text-white tabular-nums">
+								{formatFileSize(
+									convertedImage.originalSize - convertedImage.webpSize,
+								)}
+							</span>
+						</div>
+
+						<div className="flex items-center gap-2 px-3 py-1.5 bg-white text-black rounded-full">
+							<span className="text-[10px] font-bold uppercase tracking-tight">
+								Saved
+							</span>
+							<span className="text-xs font-bold tabular-nums">
+								{Math.round(
+									(1 - convertedImage.webpSize / convertedImage.originalSize) *
+										100,
+								)}
+								%
+							</span>
+						</div>
+					</div>
+				</div>
+				<button type="button" onClick={handleZoomReset} className="sr-only">
+					Reset Zoom
+				</button>
+			</div>
+		);
 };
 
 export default ImageComparison;

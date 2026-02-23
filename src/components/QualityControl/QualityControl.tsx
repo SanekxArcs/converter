@@ -1,120 +1,73 @@
 import React from 'react';
 
 interface QualityControlProps {
-  quality: number;
-  onQualityChange: (quality: number) => void;
-  onConvert: () => void;
-  isConverting: boolean;
-  fileCount: number;
+	quality: number;
+	onQualityChange: (quality: number) => void;
 }
 
 const QualityControl: React.FC<QualityControlProps> = ({
-  quality,
-  onQualityChange,
-  onConvert,
-  isConverting,
-  fileCount
+	quality,
+	onQualityChange,
 }) => {
-  return (
-    <div className="mt-2 md:mt-6 p-2 bg-gray-50 rounded-lg">
-      <h3 className="text-sm md:text-lg font-medium text-gray-800 mb-2">
-        Quality Settings
-      </h3>
-      <div className="space-y-2">
-        <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
-            Quality: {quality}%
-          </label>
+	return (
+		<div className="space-y-6">
+			<div className="flex items-end justify-between">
+				<div>
+					<h3 className="text-xl font-display font-medium mb-1 text-black dark:text-white">
+						Quality
+					</h3>
+					<p className="text-gray-400 dark:text-neutral-500 text-xs">
+						Adjust compression level
+					</p>
+				</div>
+				<span className="text-4xl font-display font-light text-black dark:text-white">
+					{quality}
+					<span className="text-lg ml-0.5 text-gray-300 dark:text-neutral-600">
+						%
+					</span>
+				</span>
+			</div>
 
-          {/* Quality Preset Buttons */}
-          <div className="flex flex-wrap justify-between gap-1 md:gap-2 mb-2 md:mb-3">
-            <button
-              onClick={() => onQualityChange(10)}
-              className={`px-2 py-2 md:py-1 flex-1 text-xs rounded-md transition-colors touch-manipulation ${
-                quality === 10
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300 active:bg-gray-400"
-              }`}
-              style={{ minHeight: '40px' }}
-            >
-              Min
-            </button>
-            <button
-              onClick={() => onQualityChange(Math.max(10, quality - 5))}
-              className="px-2 py-2 md:py-1 flex-1 text-xs bg-gray-200 text-gray-700 hover:bg-gray-300 active:bg-gray-400 rounded-md transition-colors touch-manipulation"
-              style={{ minHeight: '40px' }}
-            >
-              -5%
-            </button>
-            <button
-              onClick={() => onQualityChange(80)}
-              className={`px-2 py-2 md:py-1 text-xs rounded-md transition-colors touch-manipulation ${
-                quality === 80
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300 active:bg-gray-400"
-              }`}
-              style={{ minHeight: '40px' }}
-            >
-              Default
-            </button>
-            <button
-              onClick={() => onQualityChange(Math.min(100, quality + 5))}
-              className="px-2 flex-1 py-2 md:py-1 text-xs bg-gray-200 text-gray-700 hover:bg-gray-300 active:bg-gray-400 rounded-md transition-colors touch-manipulation"
-              style={{ minHeight: '40px' }}
-            >
-              +5%
-            </button>
-            <button
-              onClick={() => onQualityChange(100)}
-              className={`px-2 py-2 md:py-1 flex-1 text-xs rounded-md transition-colors touch-manipulation ${
-                quality === 100
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300 active:bg-gray-400"
-              }`}
-              style={{ minHeight: '40px' }}
-            >
-              Max
-            </button>
-          </div>
+			<div className="grid grid-cols-3 gap-2">
+				<button
+					type="button"
+					onClick={() => onQualityChange(Math.max(10, quality - 5))}
+					className="py-3 rounded-2xl text-[10px] uppercase tracking-widest bg-gray-50 dark:bg-neutral-900 text-black/60 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-all font-bold"
+				>
+					-5%
+				</button>
+				<button
+					type="button"
+					onClick={() => onQualityChange(80)}
+					className={`py-3 rounded-2xl text-[10px] uppercase tracking-widest transition-all font-bold ${
+						quality === 80
+							? "bg-black dark:bg-white text-white dark:text-black shadow-lg shadow-black/10"
+							: "bg-gray-50 dark:bg-neutral-900 text-black/60 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-neutral-800"
+					}`}
+				>
+					Default (80%)
+				</button>
+				<button
+					type="button"
+					onClick={() => onQualityChange(Math.min(100, quality + 5))}
+					className="py-3 rounded-2xl text-[10px] uppercase tracking-widest bg-gray-50 dark:bg-neutral-900 text-black/60 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-all font-bold"
+				>
+					+5%
+				</button>
+			</div>
 
-          <div className="relative">
-            <input
-              type="range"
-              min="10"
-              max="100"
-              value={quality}
-              onChange={(e) => onQualityChange(Number(e.target.value))}
-              className="w-full slider"
-              style={{
-                background: `linear-gradient(to right, #2563eb 0%, #2563eb ${
-                  ((quality - 10) / 90) * 100
-                }%, #e5e7eb ${((quality - 10) / 90) * 100}%, #e5e7eb 100%)`,
-                height: "8px",
-                borderRadius: "8px",
-                outline: "none",
-                WebkitAppearance: "none",
-                appearance: "none",
-              }}
-            />
-          </div>
-          <div className="flex justify-between text-xs text-gray-500 mt-0.5 md:mt-1">
-            <span>Lower size</span>
-            <span>Higher quality</span>
-          </div>
-        </div>
-        <button
-          onClick={onConvert}
-          disabled={isConverting || fileCount === 0}
-          className="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:bg-gray-400 text-white py-3 md:py-2 px-3 md:px-6 rounded-lg font-medium transition-colors text-sm md:text-base touch-manipulation"
-          style={{ minHeight: '50px' }}
-        >
-          {isConverting
-            ? "Converting..."
-            : `Convert ${fileCount} Image${fileCount > 1 ? "s" : ""} to WebP`}
-        </button>
-      </div>
-    </div>
-  );
+			<div className="relative py-2">
+				<input
+					type="range"
+					min="10"
+					max="100"
+					value={quality}
+					onChange={(e) => onQualityChange(Number(e.target.value))}
+					className="w-full h-1.5 bg-gray-100 dark:bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-black dark:accent-white"
+				/>
+			</div>
+		</div>
+	);
 };
 
 export default QualityControl;

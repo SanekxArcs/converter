@@ -1,46 +1,72 @@
 import JSZip from 'jszip';
 import type { ConvertedImage } from '../types';
 import { replaceFileExtension } from '../utils/fileUtils';
+import type { NamingSettings } from '../types';
 
-const generateFileName = (convertedImage: ConvertedImage): string => {
-  let fileName = replaceFileExtension(convertedImage.originalFile.name, '.webp');
-  
-  // If metadata has a title, use it as prefix
-  if (convertedImage.metadata?.title) {
-    const sanitizedTitle = convertedImage.metadata.title
-      .replace(/[^a-zA-Z0-9\-_\s]/g, '') // Remove special characters
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .toLowerCase();
-    fileName = `${sanitizedTitle}_${fileName}`;
+export const generateFileName = (
+  convertedImage: ConvertedImage,
+  settings?: NamingSettings,
+  index?: number,
+): string => {
+  let fileName = replaceFileExtension(
+    convertedImage.originalFile.name,
+    ".webp",
+  );
+
+  if (settings && settings.customName.trim()) {
+    fileName = `${settings.customName.trim()}.webp`;
   }
-  
+
+  const parts: string[] = [];
+  const nameWithoutExt = fileName.replace(/\.webp$/, "");
+  parts.push(nameWithoutExt);
+
+  if (settings) {
+    if (settings.addNumber && typeof index === "number") {
+      parts.push(`${index + 1}`);
+    }
+    if (settings.addDate) {
+      parts.push(new Date().toISOString().split("T")[0]);
+    }
+    if (settings.addTime) {
+      const time = new Date().toLocaleTimeString("en-GB").replace(/:/g, "-");
+      parts.push(time);
+    }
+  }
+
+  // If no custom name and no settings, just use the original filename (which is already in parts[0])
+  // But if there are extra parts, join them
+  if (parts.length > 1) {
+    fileName = `${parts.join("_")}.webp`;
+  }
+
   return fileName;
 };
 
-export const downloadSingleFile = (convertedImage: ConvertedImage): void => {
+export const downloadSingleFile = (convertedImage: ConvertedImage, settings?: NamingSettings, index?: number): void => {
   const url = URL.createObjectURL(convertedImage.webpBlob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = generateFileName(convertedImage);
+  a.download = generateFileName(convertedImage, settings, index);
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 };
 
-export const downloadMultipleFiles = (convertedImages: ConvertedImage[]): void => {
+export const downloadMultipleFiles = (convertedImages: ConvertedImage[], settings?: NamingSettings): void => {
   convertedImages.forEach((convertedImage, index) => {
-    setTimeout(() => downloadSingleFile(convertedImage), index * 100);
+    setTimeout(() => downloadSingleFile(convertedImage, settings, index), index * 100);
   });
 };
 
-export const downloadAsZip = async (convertedImages: ConvertedImage[]): Promise<void> => {
+export const downloadAsZip = async (convertedImages: ConvertedImage[], settings?: NamingSettings): Promise<void> => {
   if (convertedImages.length === 0) return;
 
   const zip = new JSZip();
   
-  convertedImages.forEach(convertedImage => {
-    const fileName = generateFileName(convertedImage);
+  convertedImages.forEach((convertedImage, index) => {
+    const fileName = generateFileName(convertedImage, settings, index);
     zip.file(fileName, convertedImage.webpBlob);
   });
 

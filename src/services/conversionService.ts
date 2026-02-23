@@ -1,18 +1,19 @@
 import type { SelectedFile, ConvertedImage, ImageMetadata, ConversionSettings } from '../types';
 import type { ResizeSettings } from '../components/ResizeControl/ResizeControl';
 import { SUPPORTED_MIME_TYPES } from '../types';
-import { prepareExifForWebP } from './exifService';
+import { prepareExifForWebP, sanitizeExifData } from "./exifService";
+import { mergeMetadata } from "../utils/metadataUtils";
 
-export const convertImageToWebP = async (
-  selectedFile: SelectedFile, 
+const convertImageToWebP = async (
+  selectedFile: SelectedFile,
   quality: number,
   resizeSettings?: ResizeSettings,
-  metadata?: ImageMetadata,
-  conversionSettings?: ConversionSettings
+  userMetadata?: ImageMetadata,
+  conversionSettings?: ConversionSettings,
 ): Promise<ConvertedImage | null> => {
   try {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
     const img = new Image();
 
     await new Promise<void>((resolve, reject) => {
@@ -21,12 +22,17 @@ export const convertImageToWebP = async (
         let targetHeight = img.height;
 
         // Apply resizing if enabled
-        if (resizeSettings?.enabled && resizeSettings.width > 0 && resizeSettings.height > 0) {
-          if (resizeSettings.aspectRatio === 'preserve') {
+        if (
+          resizeSettings?.enabled &&
+          resizeSettings.width > 0 &&
+          resizeSettings.height > 0
+        ) {
+          if (resizeSettings.aspectRatio === "preserve") {
             // Calculate dimensions while preserving aspect ratio
             const aspectRatio = img.width / img.height;
-            const targetAspectRatio = resizeSettings.width / resizeSettings.height;
-            
+            const targetAspectRatio =
+              resizeSettings.width / resizeSettings.height;
+
             if (aspectRatio > targetAspectRatio) {
               targetWidth = resizeSettings.width;
               targetHeight = Math.round(resizeSettings.width / aspectRatio);
@@ -51,26 +57,43 @@ export const convertImageToWebP = async (
     });
 
     const blob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob(resolve, 'image/webp', quality / 100);
+      canvas.toBlob(resolve, "image/webp", quality / 100);
     });
 
     if (!blob) return null;
 
     const originalSize = selectedFile.file.size;
     const webpSize = blob.size;
-    const compressionRatio = ((originalSize - webpSize) / originalSize * 100);
+    const compressionRatio = ((originalSize - webpSize) / originalSize) * 100;
 
     // Handle EXIF data if settings are provided
-    let originalExif = selectedFile.exifData;
+    const originalExif = selectedFile.exifData;
     let preservedExif = false;
-    
-    if (conversionSettings?.preserveExif && originalExif) {
-      // Prepare EXIF data for WebP (limited support)
-      const webpExif = prepareExifForWebP(originalExif);
-      preservedExif = Object.keys(webpExif).length > 0;
-      // Note: Actual EXIF embedding in WebP would require additional libraries
-      // For now, we'll store the EXIF data in our result object
+    let finalExif = originalExif;
+
+    if (originalExif) {
+      if (conversionSettings?.preserveExif) {
+        // Prepare EXIF data for WebP (limited support)
+        const webpExif = prepareExifForWebP(originalExif);
+        preservedExif = Object.keys(webpExif).length > 0;
+        finalExif = originalExif;
+      } else if (conversionSettings?.sanitizeExif) {
+        // Sanitize EXIF data
+        const sanitizedExif = sanitizeExifData(originalExif);
+        const webpExif = prepareExifForWebP(sanitizedExif);
+        preservedExif = Object.keys(webpExif).length > 0;
+        finalExif = sanitizedExif;
+      } else if (conversionSettings?.stripExif) {
+        finalExif = undefined;
+        preservedExif = false;
+      }
     }
+
+    // Merge metadata
+    const finalMetadata = mergeMetadata(
+      userMetadata || {},
+      selectedFile.autoMetadata || {},
+    );
 
     return {
       id: selectedFile.id,
@@ -80,12 +103,12 @@ export const convertImageToWebP = async (
       webpSize,
       compressionRatio,
       quality,
-      metadata,
-      originalExif,
-      preservedExif
+      metadata: finalMetadata,
+      originalExif: finalExif,
+      preservedExif,
     };
   } catch (error) {
-    console.error('Error converting image:', error);
+    console.error("Error converting image:", error);
     return null;
   }
 };
